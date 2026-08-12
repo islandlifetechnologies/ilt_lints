@@ -1,0 +1,40 @@
+name: Tag & Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/publish.yaml
+      - pubspec.yaml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dart-lang/setup-dart@v1
+
+      - name: Create Tag
+        shell: bash
+        run: |
+          set -e
+
+          dart pub global activate -sgit https://github.com/islandlifetechnologies/action-pubspec-tag
+          dart pub global run dart_version_autotag:tag --token "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Publish
+        shell: bash
+        run: |
+          set -e
+
+          set +e
+          mkdir ~/.config
+          mkdir ~/.config/dart
+
+          set -e
+          printf '${{ secrets.PUB_CREDENTIALS }}' > ~/.config/dart/pub-credentials.json
+
+          dart pub publish --force
