@@ -30,6 +30,8 @@ linter:
     - sort_unnamed_constructors_first
     - unawaited_futures
     - unnecessary_await_in_return
+    - unnecessary_primary_constructor_body
     - use_full_hex_values_for_flutter_colors
     - use_named_constants
+    # - use_primary_constructors # Doesn't exist yet - https://github.com/dart-lang/core/issues/961
     - use_string_buffers
