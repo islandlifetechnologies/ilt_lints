@@ -1,11 +1,19 @@
 name: ilt_lints
 description: Lints for ILT repos
 repository: https://github.com/islandlifetechnologies/ilt_lints
-version: 1.0.1
+version: 2.0.0-beta1
 
 environment:
   sdk: ^3.13.0
 
-dependencies: 
+dependencies:
+  analysis_server_plugin: ^0.3.26
+  analyzer: ^14.7.0
+  analyzer_plugin: ^0.14.20
   flutter_lints: ^6.0.0
+  yaml: ^3.1.4
 
+dev_dependencies:
+  analyzer_testing: ^0.4.5
+  test: ^1.33.0
+  test_reflective_loader: ^0.6.0

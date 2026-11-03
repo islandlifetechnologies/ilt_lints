@@ -1,8 +1,13 @@
 include: package:flutter_lints/flutter.yaml
 
-analyzer:
-  exclude:
-    - "**/*.g.dart"
+plugins:
+  ilt_lints:
+    version: ^2.0.0-beta1
+    diagnostics:
+      sort_fields: true
+      sort_functions_alphabetically: true
+      sort_functions_by_scope: true
+      sort_named_parameters: true
 
 linter:
   rules:
