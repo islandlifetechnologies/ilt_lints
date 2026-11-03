@@ -12,9 +12,9 @@ import 'sort_functions_by_scope.dart';
 class SortFunctionsAlphabetically extends AnalysisRule {
   SortFunctionsAlphabetically()
       : super(
-          name: code.lowerCaseName,
           description:
               'Sort functions, getters, and setters alphabetically within each scope.',
+          name: code.lowerCaseName,
         );
 
   static const code = LintCode(

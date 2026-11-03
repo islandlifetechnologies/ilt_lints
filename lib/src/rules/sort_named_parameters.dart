@@ -33,9 +33,9 @@ class SortNamedParameters extends AnalysisRule {
     this.requiredFirst = false,
   })  : ignore = Set<String>.unmodifiable(ignore),
         super(
-          name: code.lowerCaseName,
           description:
               'Sort named parameters and arguments alphabetically.',
+          name: code.lowerCaseName,
         );
 
   static const code = LintCode(

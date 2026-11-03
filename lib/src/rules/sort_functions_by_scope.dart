@@ -78,9 +78,9 @@ enum FunctionScope {
 class SortFunctionsByScope extends AnalysisRule {
   SortFunctionsByScope()
       : super(
-          name: code.lowerCaseName,
           description:
               'Sort functions, getters, and setters by static/instance and visibility scope.',
+          name: code.lowerCaseName,
         );
 
   static const code = LintCode(

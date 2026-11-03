@@ -51,96 +51,6 @@ class Example {
 ''');
   }
 
-  Future<void> test_constructorsAllowedBeforeOrBetweenFields() async {
-    await assertNoDiagnostics(r'''
-class Example {
-  static const int aConst = 1;
-
-  Example(this.aField);
-
-  final int aField;
-  final int bField = 2;
-
-  Example.named() : aField = 0;
-
-  final int _privField = 3;
-
-  int get getter => aField;
-  void method() {}
-}
-''');
-  }
-
-  Future<void> test_publicStaticConstAfterPrivateStaticConst() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  static const int _privConst = 1;
-  static const int pubConst = 2;
-}
-''',
-      [
-        lint(70, 8),
-      ],
-    );
-  }
-
-  Future<void> test_privateStaticConstAfterPublicStatic() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  static int pubStatic = 1;
-  static const int _privConst = 2;
-}
-''',
-      [
-        lint(63, 10),
-      ],
-    );
-  }
-
-  Future<void> test_publicStaticAfterPrivateStatic() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  static int _privStatic = 1;
-  static int pubStatic = 2;
-}
-''',
-      [
-        lint(59, 9),
-      ],
-    );
-  }
-
-  Future<void> test_privateStaticAfterPublicInstance() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  final int pubField = 1;
-  static int _privStatic = 2;
-}
-''',
-      [
-        lint(55, 11),
-      ],
-    );
-  }
-
-  Future<void> test_publicInstanceAfterPrivateInstance() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  final int _privField = 1;
-  final int pubField = 2;
-}
-''',
-      [
-        lint(56, 8),
-      ],
-    );
-  }
-
   Future<void> test_alphabeticalOrderWithinScopes() async {
     await assertDiagnostics(
       r'''
@@ -171,6 +81,48 @@ class Example {
         lint(237, 8),
         lint(288, 6),
         lint(338, 7),
+      ],
+    );
+  }
+
+  Future<void> test_constructorsAllowedBeforeOrBetweenFields() async {
+    await assertNoDiagnostics(r'''
+class Example {
+  static const int aConst = 1;
+
+  Example(this.aField);
+
+  final int aField;
+  final int bField = 2;
+
+  Example.named() : aField = 0;
+
+  final int _privField = 3;
+
+  int get getter => aField;
+  void method() {}
+}
+''');
+  }
+
+  Future<void> test_enumAndMixinAndExtensionType() async {
+    await assertDiagnostics(
+      r'''
+enum Status {
+  active(1);
+  const Status(this.value);
+  final int zValue = 0;
+  final int value;
+}
+
+mixin MyMixin {
+  void foo() {}
+  int bar = 0;
+}
+''',
+      [
+        lint(91, 5),
+        lint(139, 3),
       ],
     );
   }
@@ -207,29 +159,123 @@ class Example4 {
     );
   }
 
-  Future<void> test_enumAndMixinAndExtensionType() async {
+  Future<void> test_finalFirstDefaultTrueFixGroupsFinalAboveNonFinal() async {
+    const original = r'''
+class Example {
+  int betaMutable = 1;
+  final int zebraFinal = 2;
+  int alphaMutable = 3;
+  final int alphaFinal = 4;
+}
+''';
+
+    const expected = r'''
+class Example {
+  final int alphaFinal = 4;
+  final int zebraFinal = 2;
+  int alphaMutable = 3;
+  int betaMutable = 1;
+}
+''';
+
+    final fixed = await _applyFix(original);
+    expect(fixed, expected);
+  }
+
+  Future<void>
+      test_finalFirstDefaultTrueFlagsFinalAfterNonFinalInSameScope() async {
     await assertDiagnostics(
       r'''
-enum Status {
-  active(1);
-  const Status(this.value);
-  final int zValue = 0;
-  final int value;
-}
+class Example {
+  static int alphaStatic = 1;
+  static final int betaStatic = 2;
 
-mixin MyMixin {
-  void foo() {}
-  int bar = 0;
+  int alphaInstance = 1;
+  final int betaInstance = 2;
 }
 ''',
       [
-        lint(91, 5),
-        lint(139, 3),
+        lint(65, 10),
+        lint(119, 12),
       ],
     );
   }
 
-  Future<void> test_fixMovesFieldsAboveMethodsAndSortsByScopeAndAlphabetically() async {
+  Future<void> test_finalFirstDefaultTrueGroupsFinalAboveNonFinalValid() async {
+    await assertNoDiagnostics(r'''
+class Example {
+  static final int zebraStatic = 1;
+  static int alphaStatic = 2;
+
+  static final int _zebraPrivStatic = 1;
+  static int _alphaPrivStatic = 2;
+
+  final int zebraInstance = 1;
+  int alphaInstance = 2;
+
+  final int _zebraPrivInstance = 1;
+  int _alphaPrivInstance = 2;
+}
+''');
+  }
+
+  Future<void> test_finalFirstFalseFlagsUnsortedAndFixesAlphabetically() async {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      '''
+linter:
+  rules:
+    - sort_fields
+
+sort_fields:
+  final_first: false
+''',
+    );
+
+    const original = r'''
+class Example {
+  final int zebraFinal = 1;
+  int betaMutable = 2;
+  final int alphaFinal = 3;
+}
+''';
+
+    const expected = r'''
+class Example {
+  final int alphaFinal = 3;
+  int betaMutable = 2;
+  final int zebraFinal = 1;
+}
+''';
+
+    final fixed = await _applyFix(original);
+    expect(fixed, expected);
+  }
+
+  Future<void> test_finalFirstFalseSortsPurelyAlphabeticallyValid() async {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      '''
+linter:
+  rules:
+    - sort_fields
+
+sort_fields:
+  final_first: false
+''',
+    );
+
+    await assertNoDiagnostics(r'''
+class Example {
+  int alphaInstance = 1;
+  final int betaInstance = 2;
+  int charlieInstance = 3;
+}
+''');
+  }
+
+  Future<void>
+      test_fixMovesFieldsAboveMethodsAndSortsByScopeAndAlphabetically() async {
     const original = r'''
 class Example {
   Example(this.alphaField, this.betaField);
@@ -292,6 +338,76 @@ class Example {
     expect(fixed, expected);
   }
 
+  Future<void> test_privateStaticAfterPublicInstance() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  final int pubField = 1;
+  static int _privStatic = 2;
+}
+''',
+      [
+        lint(55, 11),
+      ],
+    );
+  }
+
+  Future<void> test_privateStaticConstAfterPublicStatic() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  static int pubStatic = 1;
+  static const int _privConst = 2;
+}
+''',
+      [
+        lint(63, 10),
+      ],
+    );
+  }
+
+  Future<void> test_publicInstanceAfterPrivateInstance() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  final int _privField = 1;
+  final int pubField = 2;
+}
+''',
+      [
+        lint(56, 8),
+      ],
+    );
+  }
+
+  Future<void> test_publicStaticAfterPrivateStatic() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  static int _privStatic = 1;
+  static int pubStatic = 2;
+}
+''',
+      [
+        lint(59, 9),
+      ],
+    );
+  }
+
+  Future<void> test_publicStaticConstAfterPrivateStaticConst() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  static const int _privConst = 1;
+  static const int pubConst = 2;
+}
+''',
+      [
+        lint(70, 8),
+      ],
+    );
+  }
+
   Future<String> _applyFix(String content) async {
     newFile(testFile.path, content);
     final unitResult = await resolveFile(testFile.path);
@@ -305,11 +421,11 @@ class Example {
 
     final diagnostic = diagnostics.first;
     final context = CorrectionProducerContext.createResolved(
-      libraryResult: libraryResult,
-      unitResult: unitResult,
       diagnostic: diagnostic,
-      selectionOffset: diagnostic.offset,
+      libraryResult: libraryResult,
       selectionLength: diagnostic.length,
+      selectionOffset: diagnostic.offset,
+      unitResult: unitResult,
     );
     final producer = SortFieldsFix(context: context);
     final builder = ChangeBuilder(session: unitResult.session);

@@ -23,46 +23,19 @@ class SortNamedParametersTest extends AnalysisRuleTest {
     super.setUp();
   }
 
-  Future<void> test_functionAndConstructorDeclarationsSorted() async {
-    await assertNoDiagnostics(r'''
-void topLevel(int positional, {required int alpha, int beta = 0, String? charlie}) {}
-
+  Future<void> test_constructorCallNamedArgumentsUnsorted() async {
+    await assertDiagnostics(
+      r'''
 class Example {
-  final int alpha;
-  final int beta;
-
-  Example(int pos, {required this.alpha, this.beta = 0, int? charlie});
-
-  void method({int? alpha, required int beta}) {}
-}
-''');
-  }
-
-  Future<void> test_functionAndConstructorCallsSorted() async {
-    await assertNoDiagnostics(r'''
-void topLevel(int positional, {required int alpha, int beta = 0, String? charlie}) {}
-
-class Example {
-  final int alpha;
-  final int beta;
-
-  Example(int pos, {required this.alpha, this.beta = 0});
+  Example({int? alpha, int? beta});
 }
 
 void caller() {
-  topLevel(1, alpha: 1, beta: 2, charlie: 'c');
-  final _ = Example(1, alpha: 10, beta: 20);
+  Example(beta: 2, alpha: 1);
 }
-''');
-  }
-
-  Future<void> test_functionDeclarationNamedParametersUnsorted() async {
-    await assertDiagnostics(
-      r'''
-void topLevel(int pos, {required int beta, int alpha = 0}) {}
 ''',
       [
-        lint(47, 5),
+        lint(90, 5),
       ],
     );
   }
@@ -83,126 +56,8 @@ class Example {
     );
   }
 
-  Future<void> test_superParametersAndDefaultValuesUnsorted() async {
-    await assertDiagnostics(
-      r'''
-class Base {
-  Base({int? alpha, int? beta});
-}
-
-class Sub extends Base {
-  Sub({super.beta, super.alpha});
-}
-''',
-      [
-        lint(99, 5),
-      ],
-    );
-  }
-
-  Future<void> test_functionCallNamedArgumentsUnsorted() async {
-    await assertDiagnostics(
-      r'''
-void foo({int? alpha, int? beta, int? charlie}) {}
-
-void caller() {
-  foo(charlie: 3, beta: 2, alpha: 1);
-}
-''',
-      [
-        lint(86, 4),
-        lint(95, 5),
-      ],
-    );
-  }
-
-  Future<void> test_constructorCallNamedArgumentsUnsorted() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  Example({int? alpha, int? beta});
-}
-
-void caller() {
-  Example(beta: 2, alpha: 1);
-}
-''',
-      [
-        lint(90, 5),
-      ],
-    );
-  }
-
-  Future<void> test_ignoreOptionViaAnalysisOptionsYaml() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
-linter:
-  rules:
-    - sort_named_parameters
-
-sort_named_parameters:
-  ignore:
-    - key
-    - child
-''',
-    );
-
-    await assertNoDiagnostics(r'''
-class Widget {
-  const Widget({String? key, int? alpha, int? beta, Widget? child});
-}
-
-Widget build() {
-  return const Widget(
-    key: 'k',
-    alpha: 1,
-    beta: 2,
-    child: Widget(),
-  );
-}
-''');
-  }
-
-  Future<void> test_ignoreOptionStillFlagsNonIgnoredUnsortedParameters() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
-linter:
-  rules:
-    - sort_named_parameters
-
-ilt_lints:
-  sort_named_parameters:
-    ignore:
-      - key
-      - child
-''',
-    );
-
-    await assertDiagnostics(
-      r'''
-class Widget {
-  const Widget({String? key, int? beta, int? alpha, Widget? child});
-}
-
-Widget build() {
-  return const Widget(
-    key: 'k',
-    beta: 2,
-    alpha: 1,
-    child: Widget(),
-  );
-}
-''',
-      [
-        lint(60, 5),
-        lint(158, 5),
-      ],
-    );
-  }
-
-  Future<void> test_fixSortsDeclarationAndCallSitePreservingIgnoredParameters() async {
+  Future<void>
+      test_fixSortsDeclarationAndCallSitePreservingIgnoredParameters() async {
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
       '''
@@ -298,8 +153,106 @@ Widget build() {
     expect(fixedCall, expectedCall);
   }
 
+  Future<void> test_functionAndConstructorCallsSorted() async {
+    await assertNoDiagnostics(r'''
+void topLevel(int positional, {required int alpha, int beta = 0, String? charlie}) {}
+
+class Example {
+  final int alpha;
+  final int beta;
+
+  Example(int pos, {required this.alpha, this.beta = 0});
+}
+
+void caller() {
+  topLevel(1, alpha: 1, beta: 2, charlie: 'c');
+  final _ = Example(1, alpha: 10, beta: 20);
+}
+''');
+  }
+
+  Future<void> test_functionAndConstructorDeclarationsSorted() async {
+    await assertNoDiagnostics(r'''
+void topLevel(int positional, {required int alpha, int beta = 0, String? charlie}) {}
+
+class Example {
+  final int alpha;
+  final int beta;
+
+  Example(int pos, {required this.alpha, this.beta = 0, int? charlie});
+
+  void method({int? alpha, required int beta}) {}
+}
+''');
+  }
+
+  Future<void> test_functionCallNamedArgumentsUnsorted() async {
+    await assertDiagnostics(
+      r'''
+void foo({int? alpha, int? beta, int? charlie}) {}
+
+void caller() {
+  foo(charlie: 3, beta: 2, alpha: 1);
+}
+''',
+      [
+        lint(86, 4),
+        lint(95, 5),
+      ],
+    );
+  }
+
+  Future<void> test_functionDeclarationNamedParametersUnsorted() async {
+    await assertDiagnostics(
+      r'''
+void topLevel(int pos, {required int beta, int alpha = 0}) {}
+''',
+      [
+        lint(47, 5),
+      ],
+    );
+  }
+
   Future<void>
-      test_requiredFirstValidInDeclarationAndCallSitePurelyAlphabetical() async {
+      test_ignoreOptionStillFlagsNonIgnoredUnsortedParameters() async {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      '''
+linter:
+  rules:
+    - sort_named_parameters
+
+ilt_lints:
+  sort_named_parameters:
+    ignore:
+      - key
+      - child
+''',
+    );
+
+    await assertDiagnostics(
+      r'''
+class Widget {
+  const Widget({String? key, int? beta, int? alpha, Widget? child});
+}
+
+Widget build() {
+  return const Widget(
+    key: 'k',
+    beta: 2,
+    alpha: 1,
+    child: Widget(),
+  );
+}
+''',
+      [
+        lint(60, 5),
+        lint(158, 5),
+      ],
+    );
+  }
+
+  Future<void> test_ignoreOptionViaAnalysisOptionsYaml() async {
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
       '''
@@ -308,7 +261,6 @@ linter:
     - sort_named_parameters
 
 sort_named_parameters:
-  required_first: true
   ignore:
     - key
     - child
@@ -317,14 +269,7 @@ sort_named_parameters:
 
     await assertNoDiagnostics(r'''
 class Widget {
-  const Widget({
-    String? key,
-    required int beta,
-    required int zebra,
-    int? alpha,
-    int charlie = 0,
-    Widget? child,
-  });
+  const Widget({String? key, int? alpha, int? beta, Widget? child});
 }
 
 Widget build() {
@@ -332,91 +277,10 @@ Widget build() {
     key: 'k',
     alpha: 1,
     beta: 2,
-    charlie: 3,
-    zebra: 4,
-    child: null,
+    child: Widget(),
   );
 }
 ''');
-  }
-
-  Future<void>
-      test_requiredFirstFlagsRequiredAfterOptionalAndUnsortedGroups() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
-linter:
-  rules:
-    - sort_named_parameters
-
-sort_named_parameters:
-  required_first: true
-''',
-    );
-
-    await assertDiagnostics(
-      r'''
-void foo({
-  required int zebra,
-  required int beta,
-  int? delta,
-  required int alpha,
-  int? charlie,
-}) {}
-''',
-      [
-        lint(48, 4),
-        lint(83, 5),
-        lint(97, 7),
-      ],
-    );
-  }
-
-  Future<void>
-      test_requiredFirstFixSortsRequiredThenOptionalPreservingIgnored() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
-linter:
-  rules:
-    - sort_named_parameters
-
-sort_named_parameters:
-  required_first: true
-  ignore:
-    - key
-    - child
-''',
-    );
-
-    const original = r'''
-class Widget {
-  const Widget({
-    String? key,
-    int? delta,
-    required int zebra,
-    int charlie = 0,
-    required int beta,
-    Widget? child,
-  });
-}
-''';
-
-    const expected = r'''
-class Widget {
-  const Widget({
-    String? key,
-    required int beta,
-    required int zebra,
-    int charlie = 0,
-    int? delta,
-    Widget? child,
-  });
-}
-''';
-
-    final fixed = await _applyFix(original);
-    expect(fixed, expected);
   }
 
   Future<void> test_privateNamedParametersIgnoreLeadingUnderscore() async {
@@ -475,6 +339,144 @@ class Example {
     expect(fixed, expected);
   }
 
+  Future<void>
+      test_requiredFirstFixSortsRequiredThenOptionalPreservingIgnored() async {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      '''
+linter:
+  rules:
+    - sort_named_parameters
+
+sort_named_parameters:
+  required_first: true
+  ignore:
+    - key
+    - child
+''',
+    );
+
+    const original = r'''
+class Widget {
+  const Widget({
+    String? key,
+    int? delta,
+    required int zebra,
+    int charlie = 0,
+    required int beta,
+    Widget? child,
+  });
+}
+''';
+
+    const expected = r'''
+class Widget {
+  const Widget({
+    String? key,
+    required int beta,
+    required int zebra,
+    int charlie = 0,
+    int? delta,
+    Widget? child,
+  });
+}
+''';
+
+    final fixed = await _applyFix(original);
+    expect(fixed, expected);
+  }
+
+  Future<void>
+      test_requiredFirstFlagsRequiredAfterOptionalAndUnsortedGroups() async {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      '''
+linter:
+  rules:
+    - sort_named_parameters
+
+sort_named_parameters:
+  required_first: true
+''',
+    );
+
+    await assertDiagnostics(
+      r'''
+void foo({
+  required int zebra,
+  required int beta,
+  int? delta,
+  required int alpha,
+  int? charlie,
+}) {}
+''',
+      [
+        lint(48, 4),
+        lint(83, 5),
+        lint(97, 7),
+      ],
+    );
+  }
+
+  Future<void>
+      test_requiredFirstValidInDeclarationAndCallSitePurelyAlphabetical() async {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      '''
+linter:
+  rules:
+    - sort_named_parameters
+
+sort_named_parameters:
+  required_first: true
+  ignore:
+    - key
+    - child
+''',
+    );
+
+    await assertNoDiagnostics(r'''
+class Widget {
+  const Widget({
+    String? key,
+    required int beta,
+    required int zebra,
+    int? alpha,
+    int charlie = 0,
+    Widget? child,
+  });
+}
+
+Widget build() {
+  return const Widget(
+    key: 'k',
+    alpha: 1,
+    beta: 2,
+    charlie: 3,
+    zebra: 4,
+    child: null,
+  );
+}
+''');
+  }
+
+  Future<void> test_superParametersAndDefaultValuesUnsorted() async {
+    await assertDiagnostics(
+      r'''
+class Base {
+  Base({int? alpha, int? beta});
+}
+
+class Sub extends Base {
+  Sub({super.beta, super.alpha});
+}
+''',
+      [
+        lint(99, 5),
+      ],
+    );
+  }
+
   Future<String> _applyFix(String content) async {
     newFile(testFile.path, content);
     final unitResult = await resolveFile(testFile.path);
@@ -488,11 +490,11 @@ class Example {
 
     final diagnostic = diagnostics.first;
     final context = CorrectionProducerContext.createResolved(
-      libraryResult: libraryResult,
-      unitResult: unitResult,
       diagnostic: diagnostic,
-      selectionOffset: diagnostic.offset,
+      libraryResult: libraryResult,
       selectionLength: diagnostic.length,
+      selectionOffset: diagnostic.offset,
+      unitResult: unitResult,
     );
     final producer = SortNamedParametersFix(context: context);
     final builder = ChangeBuilder(session: unitResult.session);

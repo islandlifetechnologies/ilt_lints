@@ -65,151 +65,6 @@ class Example {
 ''');
   }
 
-  Future<void> test_ignoresFieldsConstructorsAndOperators() async {
-    await assertNoDiagnostics(r'''
-class Example {
-  final int a;
-  Example(this.a);
-
-  static void pubStatic() {}
-
-  int b = 0;
-
-  int get pubGetter => a + b;
-
-  Example operator +(Example other) => Example(a + other.a);
-
-  void pubInstance() {}
-
-  Example.named() : a = 0;
-
-  void _privInstance() {}
-
-  @override
-  bool operator ==(Object other) => identical(this, other);
-}
-''');
-  }
-
-  Future<void> test_publicStaticAfterPrivateStatic() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  static void _privStatic() {}
-  static void pubStatic() {}
-}
-''',
-      [
-        lint(61, 9),
-      ],
-    );
-  }
-
-  Future<void> test_privateStaticAfterPublicGetter() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  int get pubGetter => 1;
-  static void _privStatic() {}
-}
-''',
-      [
-        lint(56, 11),
-      ],
-    );
-  }
-
-  Future<void> test_publicGetterAfterPublicSetter() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  set pubSetter(int v) {}
-  int get pubGetter => 1;
-}
-''',
-      [
-        lint(52, 9),
-      ],
-    );
-  }
-
-  Future<void> test_publicSetterAfterPrivateGetter() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  int get _privGetter => 1;
-  set pubSetter(int v) {}
-}
-''',
-      [
-        lint(50, 9),
-      ],
-    );
-  }
-
-  Future<void> test_privateGetterAfterPrivateSetter() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  set _privSetter(int v) {}
-  int get _privGetter => 1;
-}
-''',
-      [
-        lint(54, 11),
-      ],
-    );
-  }
-
-  Future<void> test_privateSetterAfterPublicInstance() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  void pubInstance() {}
-  set _privSetter(int v) {}
-}
-''',
-      [
-        lint(46, 11),
-      ],
-    );
-  }
-
-  Future<void> test_publicInstanceAfterPrivateInstance() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  void _privInstance() {}
-  void pubInstance() {}
-}
-''',
-      [
-        lint(49, 11),
-      ],
-    );
-  }
-
-  Future<void> test_staticGetterAndSetterSubgroupedBeforeStaticFunctions() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  static void pubStatic() {}
-  static set pubStaticSetter(int v) {}
-  static int get pubStaticGetter => 1;
-  static void _privStatic() {}
-  static set _privStaticSetter(int v) {}
-  static int get _privStaticGetter => 1;
-}
-''',
-      [
-        lint(58, 15),
-        lint(101, 15),
-        lint(167, 17),
-        lint(212, 17),
-      ],
-    );
-  }
-
   Future<void> test_enumDeclaration() async {
     await assertDiagnostics(
       r'''
@@ -223,20 +78,6 @@ enum Status {
 ''',
       [
         lint(70, 11),
-      ],
-    );
-  }
-
-  Future<void> test_mixinDeclaration() async {
-    await assertDiagnostics(
-      r'''
-mixin MyMixin {
-  void pubInstance() {}
-  int get pubGetter => 1;
-}
-''',
-      [
-        lint(50, 9),
       ],
     );
   }
@@ -339,6 +180,166 @@ class Example {
     expect(fixed, expected);
   }
 
+  Future<void> test_ignoresFieldsConstructorsAndOperators() async {
+    await assertNoDiagnostics(r'''
+class Example {
+  final int a;
+  Example(this.a);
+
+  static void pubStatic() {}
+
+  int b = 0;
+
+  int get pubGetter => a + b;
+
+  Example operator +(Example other) => Example(a + other.a);
+
+  void pubInstance() {}
+
+  Example.named() : a = 0;
+
+  void _privInstance() {}
+
+  @override
+  bool operator ==(Object other) => identical(this, other);
+}
+''');
+  }
+
+  Future<void> test_mixinDeclaration() async {
+    await assertDiagnostics(
+      r'''
+mixin MyMixin {
+  void pubInstance() {}
+  int get pubGetter => 1;
+}
+''',
+      [
+        lint(50, 9),
+      ],
+    );
+  }
+
+  Future<void> test_privateGetterAfterPrivateSetter() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  set _privSetter(int v) {}
+  int get _privGetter => 1;
+}
+''',
+      [
+        lint(54, 11),
+      ],
+    );
+  }
+
+  Future<void> test_privateSetterAfterPublicInstance() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  void pubInstance() {}
+  set _privSetter(int v) {}
+}
+''',
+      [
+        lint(46, 11),
+      ],
+    );
+  }
+
+  Future<void> test_privateStaticAfterPublicGetter() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  int get pubGetter => 1;
+  static void _privStatic() {}
+}
+''',
+      [
+        lint(56, 11),
+      ],
+    );
+  }
+
+  Future<void> test_publicGetterAfterPublicSetter() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  set pubSetter(int v) {}
+  int get pubGetter => 1;
+}
+''',
+      [
+        lint(52, 9),
+      ],
+    );
+  }
+
+  Future<void> test_publicInstanceAfterPrivateInstance() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  void _privInstance() {}
+  void pubInstance() {}
+}
+''',
+      [
+        lint(49, 11),
+      ],
+    );
+  }
+
+  Future<void> test_publicSetterAfterPrivateGetter() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  int get _privGetter => 1;
+  set pubSetter(int v) {}
+}
+''',
+      [
+        lint(50, 9),
+      ],
+    );
+  }
+
+  Future<void> test_publicStaticAfterPrivateStatic() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  static void _privStatic() {}
+  static void pubStatic() {}
+}
+''',
+      [
+        lint(61, 9),
+      ],
+    );
+  }
+
+  Future<void>
+      test_staticGetterAndSetterSubgroupedBeforeStaticFunctions() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  static void pubStatic() {}
+  static set pubStaticSetter(int v) {}
+  static int get pubStaticGetter => 1;
+  static void _privStatic() {}
+  static set _privStaticSetter(int v) {}
+  static int get _privStaticGetter => 1;
+}
+''',
+      [
+        lint(58, 15),
+        lint(101, 15),
+        lint(167, 17),
+        lint(212, 17),
+      ],
+    );
+  }
+
   Future<String> _applyFix(String content) async {
     newFile(testFile.path, content);
     final unitResult = await resolveFile(testFile.path);
@@ -352,11 +353,11 @@ class Example {
 
     final diagnostic = diagnostics.first;
     final context = CorrectionProducerContext.createResolved(
-      libraryResult: libraryResult,
-      unitResult: unitResult,
       diagnostic: diagnostic,
-      selectionOffset: diagnostic.offset,
+      libraryResult: libraryResult,
       selectionLength: diagnostic.length,
+      selectionOffset: diagnostic.offset,
+      unitResult: unitResult,
     );
     final producer = SortFunctionsByScopeFix(context: context);
     final builder = ChangeBuilder(session: unitResult.session);

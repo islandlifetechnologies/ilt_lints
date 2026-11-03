@@ -1,19 +1,26 @@
-# ilt_lints
+## Usage:
 
 **analysis_options.yaml**
 
 ```yaml
+# Optional; you can also use your own rules rather than importing the recommended ones.
 include: package:ilt_lints/lints.yaml
 
+# Optional plugins; already included if you use the recommended rules above
 plugins:
   ilt_lints:
-    version: ^2.0.1
+    version: ^2.0.0
     diagnostics:
       sort_fields: true
       sort_functions_by_scope: true
       sort_functions_alphabetically: true
       sort_named_parameters: true
 
+# Optional; configuration values for the sort_fields rule
+sort_fields:
+  final_first: true
+
+# Optional; configuration values for the sort_named_parameters rule
 sort_named_parameters:
   required_first: false
   ignore:
@@ -28,11 +35,25 @@ dev_dependencies:
   ilt_lints: <<version>
 ```
 
+## CLI Fix Tool
+
+To apply automated fixes for all enabled custom `ilt_lints` rules across your project:
+
+```sh
+dart run ilt_lints:fix
+```
+
+You can also pass specific file or directory paths, or `--dry-run` (`-n`) to preview fixes without modifying files:
+
+```sh
+dart run ilt_lints:fix --dry-run lib/
+```
+
 ## Custom Lint Rules
 
 ### `sort_fields`
 
-Ensures fields within a type body (classes, mixins, enums, extensions, and extension types) appear before all methods, getters, setters, and operators (ignoring constructors), grouped by scope in the following order and sorted alphabetically within each scope:
+Ensures fields within a type body (classes, mixins, enums, extensions, and extension types) appear before all methods, getters, setters, and operators (ignoring constructors), grouped by scope in the following order and sorted alphabetically within each group:
 
 1. Public `static const` fields
 2. Private `static const` fields
@@ -40,6 +61,16 @@ Ensures fields within a type body (classes, mixins, enums, extensions, and exten
 4. Private `static` fields
 5. Public instance fields
 6. Private instance fields
+
+Supports a custom `final_first` option in `analysis_options.yaml` (defaults to `true`):
+
+- When `true`, `final` fields are grouped above non-`final` fields within each scope, and each subgroup is sorted alphabetically.
+- When `false`, all fields within a scope are sorted alphabetically regardless of `final`.
+
+```yaml
+sort_fields:
+  final_first: true
+```
 
 Includes an automated quick fix (`Sort fields`).
 
@@ -73,6 +104,7 @@ Fields, constructors, and operators are ignored. Includes an automated quick fix
 Ensures named parameters in function/method/constructor declarations and named arguments when calling a function/method/constructor are sorted alphabetically. Leading underscores on private named parameters (such as `this._foo` or `required String _foo`) are ignored when sorting so `_foo` sorts as `foo`.
 
 Supports custom options in `analysis_options.yaml`:
+
 - `required_first` (defaults to `false`): when `true`, sorts `required` named parameters alphabetically before optional named parameters in declarations.
 - `ignore`: a list of parameter names (e.g., `ignore: [key, child]`) that should be skipped during sorting and quick fixes.
 

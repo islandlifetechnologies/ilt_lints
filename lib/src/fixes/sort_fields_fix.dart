@@ -9,16 +9,22 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 import '../rules/sort_fields.dart';
 
-/// A quick fix that moves fields above methods and sorts them by [FieldScope]
-/// and alphabetically within each scope.
+/// A quick fix that moves fields above methods and sorts them by [FieldScope],
+/// `final` vs non-`final` (when `final_first` is enabled), and alphabetically
+/// within each group.
 class SortFieldsFix extends ResolvedCorrectionProducer {
-  SortFieldsFix({required super.context});
+  SortFieldsFix({
+    required super.context,
+    bool? finalFirst,
+  }) : _finalFirstOverride = finalFirst;
 
   static const _fixKind = FixKind(
     'dart.fix.sortFields',
     DartFixKindPriority.standard,
     'Sort fields',
   );
+
+  final bool? _finalFirstOverride;
 
   @override
   CorrectionApplicability get applicability =>
@@ -41,6 +47,15 @@ class SortFieldsFix extends ResolvedCorrectionProducer {
       return;
     }
 
+    final analysisContext = unitResult.session.analysisContext;
+    final currentFile =
+        unitResult.session.resourceProvider.getFile(unitResult.path);
+    final fileOptions = SortFields.readOptions(
+      currentFile,
+      optionsFile: analysisContext.contextRoot.optionsFile,
+    );
+    final finalFirst = _finalFirstOverride ?? fileOptions.finalFirst;
+
     final allSlots = <_MemberSlot>[];
     final fieldEntries = <_FieldEntry>[];
     final methodEntries = <_MemberSlot>[];
@@ -54,6 +69,7 @@ class SortFieldsFix extends ResolvedCorrectionProducer {
         allSlots.add(slot);
         fieldEntries.add(
           _FieldEntry(
+            isFinal: member.fields.isFinal,
             name: member.fields.variables.first.name.lexeme,
             originalOrder: fieldEntries.length,
             scope: FieldScope.of(member),
@@ -78,6 +94,9 @@ class SortFieldsFix extends ResolvedCorrectionProducer {
         final scopeCmp = a.scope.index.compareTo(b.scope.index);
         if (scopeCmp != 0) {
           return scopeCmp;
+        }
+        if (finalFirst && a.isFinal != b.isFinal) {
+          return a.isFinal ? -1 : 1;
         }
         final nameCmp = a.name.compareTo(b.name);
         if (nameCmp != 0) {
@@ -139,12 +158,14 @@ class SortFieldsFix extends ResolvedCorrectionProducer {
 
 class _FieldEntry {
   const _FieldEntry({
+    required this.isFinal,
     required this.name,
     required this.originalOrder,
     required this.scope,
     required this.slot,
   });
 
+  final bool isFinal;
   final String name;
   final int originalOrder;
   final FieldScope scope;
@@ -160,4 +181,3 @@ class _MemberSlot {
   final SourceRange range;
   final String text;
 }
-

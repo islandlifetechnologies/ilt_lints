@@ -55,8 +55,8 @@ class SortFunctionsByScopeFix extends ResolvedCorrectionProducer {
       entries.add(
         _SortableMethod(
           originalOrder: entries.length,
-          scope: scope,
           range: memberRange,
+          scope: scope,
           text: utils.getRangeText(memberRange),
         ),
       );

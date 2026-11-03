@@ -65,173 +65,6 @@ class Example {
 ''');
   }
 
-  Future<void> test_publicStaticFunctionsOutOfAlphabeticalOrder() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  static void beta() {}
-  static void alpha() {}
-}
-''',
-      [
-        lint(54, 5),
-      ],
-    );
-  }
-
-  Future<void> test_privateStaticFunctionsOutOfAlphabeticalOrder() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  static void _beta() {}
-  static void _alpha() {}
-}
-''',
-      [
-        lint(55, 6),
-      ],
-    );
-  }
-
-  Future<void> test_staticGettersSettersAndMethodsHaveSeparateAlphabeticalScopes() async {
-    await assertNoDiagnostics(r'''
-class Example {
-  static int get zebraGetter => 1;
-  static set middleSetter(int v) {}
-  static void alphaMethod() {}
-}
-''');
-  }
-
-  Future<void> test_publicStaticGettersOutOfAlphabeticalOrder() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  static int get beta => 1;
-  static int get alpha => 2;
-}
-''',
-      [
-        lint(61, 5),
-      ],
-    );
-  }
-
-  Future<void> test_publicStaticSettersOutOfAlphabeticalOrder() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  static set beta(int v) {}
-  static set alpha(int v) {}
-}
-''',
-      [
-        lint(57, 5),
-      ],
-    );
-  }
-
-  Future<void> test_publicGettersOutOfAlphabeticalOrder() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  int get beta => 1;
-  int get alpha => 2;
-}
-''',
-      [
-        lint(47, 5),
-      ],
-    );
-  }
-
-  Future<void> test_publicSettersOutOfAlphabeticalOrder() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  set beta(int v) {}
-  set alpha(int v) {}
-}
-''',
-      [
-        lint(43, 5),
-      ],
-    );
-  }
-
-  Future<void> test_privateGettersOutOfAlphabeticalOrder() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  int get _beta => 1;
-  int get _alpha => 2;
-}
-''',
-      [
-        lint(48, 6),
-      ],
-    );
-  }
-
-  Future<void> test_privateSettersOutOfAlphabeticalOrder() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  set _beta(int v) {}
-  set _alpha(int v) {}
-}
-''',
-      [
-        lint(44, 6),
-      ],
-    );
-  }
-
-  Future<void> test_publicInstanceFunctionsOutOfAlphabeticalOrder() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  void charlie() {}
-  void bravo() {}
-  void alpha() {}
-}
-''',
-      [
-        lint(43, 5),
-        lint(61, 5),
-      ],
-    );
-  }
-
-  Future<void> test_privateInstanceFunctionsOutOfAlphabeticalOrder() async {
-    await assertDiagnostics(
-      r'''
-class Example {
-  void _beta() {}
-  void _alpha() {}
-}
-''',
-      [
-        lint(41, 6),
-      ],
-    );
-  }
-
-  Future<void> test_ignoresOperatorsFieldsAndConstructors() async {
-    await assertNoDiagnostics(r'''
-class Example {
-  final int z;
-  Example(this.z);
-  Example.a() : z = 0;
-
-  void alpha() {}
-  Example operator +(Example other) => Example(z + other.z);
-  Example operator -(Example other) => Example(z - other.z);
-  void beta() {}
-}
-''');
-  }
-
   Future<void> test_enumMixinExtensionAndExtensionType() async {
     await assertDiagnostics(
       r'''
@@ -265,7 +98,8 @@ extension type Id(int value) {
     );
   }
 
-  Future<void> test_fixSortsAlphabeticallyWithinEachScopeAndPreservesComments() async {
+  Future<void>
+      test_fixSortsAlphabeticallyWithinEachScopeAndPreservesComments() async {
     const original = r'''
 class Example {
   static void charlieStatic() {}
@@ -324,6 +158,174 @@ class Example {
     expect(fixed, expected);
   }
 
+  Future<void> test_ignoresOperatorsFieldsAndConstructors() async {
+    await assertNoDiagnostics(r'''
+class Example {
+  final int z;
+  Example(this.z);
+  Example.a() : z = 0;
+
+  void alpha() {}
+  Example operator +(Example other) => Example(z + other.z);
+  Example operator -(Example other) => Example(z - other.z);
+  void beta() {}
+}
+''');
+  }
+
+  Future<void> test_privateGettersOutOfAlphabeticalOrder() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  int get _beta => 1;
+  int get _alpha => 2;
+}
+''',
+      [
+        lint(48, 6),
+      ],
+    );
+  }
+
+  Future<void> test_privateInstanceFunctionsOutOfAlphabeticalOrder() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  void _beta() {}
+  void _alpha() {}
+}
+''',
+      [
+        lint(41, 6),
+      ],
+    );
+  }
+
+  Future<void> test_privateSettersOutOfAlphabeticalOrder() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  set _beta(int v) {}
+  set _alpha(int v) {}
+}
+''',
+      [
+        lint(44, 6),
+      ],
+    );
+  }
+
+  Future<void> test_privateStaticFunctionsOutOfAlphabeticalOrder() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  static void _beta() {}
+  static void _alpha() {}
+}
+''',
+      [
+        lint(55, 6),
+      ],
+    );
+  }
+
+  Future<void> test_publicGettersOutOfAlphabeticalOrder() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  int get beta => 1;
+  int get alpha => 2;
+}
+''',
+      [
+        lint(47, 5),
+      ],
+    );
+  }
+
+  Future<void> test_publicInstanceFunctionsOutOfAlphabeticalOrder() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  void charlie() {}
+  void bravo() {}
+  void alpha() {}
+}
+''',
+      [
+        lint(43, 5),
+        lint(61, 5),
+      ],
+    );
+  }
+
+  Future<void> test_publicSettersOutOfAlphabeticalOrder() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  set beta(int v) {}
+  set alpha(int v) {}
+}
+''',
+      [
+        lint(43, 5),
+      ],
+    );
+  }
+
+  Future<void> test_publicStaticFunctionsOutOfAlphabeticalOrder() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  static void beta() {}
+  static void alpha() {}
+}
+''',
+      [
+        lint(54, 5),
+      ],
+    );
+  }
+
+  Future<void> test_publicStaticGettersOutOfAlphabeticalOrder() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  static int get beta => 1;
+  static int get alpha => 2;
+}
+''',
+      [
+        lint(61, 5),
+      ],
+    );
+  }
+
+  Future<void> test_publicStaticSettersOutOfAlphabeticalOrder() async {
+    await assertDiagnostics(
+      r'''
+class Example {
+  static set beta(int v) {}
+  static set alpha(int v) {}
+}
+''',
+      [
+        lint(57, 5),
+      ],
+    );
+  }
+
+  Future<void>
+      test_staticGettersSettersAndMethodsHaveSeparateAlphabeticalScopes() async {
+    await assertNoDiagnostics(r'''
+class Example {
+  static int get zebraGetter => 1;
+  static set middleSetter(int v) {}
+  static void alphaMethod() {}
+}
+''');
+  }
+
   Future<String> _applyFix(String content) async {
     newFile(testFile.path, content);
     final unitResult = await resolveFile(testFile.path);
@@ -337,11 +339,11 @@ class Example {
 
     final diagnostic = diagnostics.first;
     final context = CorrectionProducerContext.createResolved(
-      libraryResult: libraryResult,
-      unitResult: unitResult,
       diagnostic: diagnostic,
-      selectionOffset: diagnostic.offset,
+      libraryResult: libraryResult,
       selectionLength: diagnostic.length,
+      selectionOffset: diagnostic.offset,
+      unitResult: unitResult,
     );
     final producer = SortFunctionsAlphabeticallyFix(context: context);
     final builder = ChangeBuilder(session: unitResult.session);
