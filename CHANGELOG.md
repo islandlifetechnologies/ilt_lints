@@ -1,3 +1,7 @@
+## 2.0.0-beta3
+
+- Rolled version and retriggered build due to GH Action issue.
+
 ## 2.0.0-beta2
 
 - Added custom `export_library` rule but does not utilize the rule in the default rule set.
