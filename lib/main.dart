@@ -1,10 +1,12 @@
 import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
 
+import 'src/fixes/export_library_fix.dart';
 import 'src/fixes/sort_fields_fix.dart';
 import 'src/fixes/sort_functions_alphabetically_fix.dart';
 import 'src/fixes/sort_functions_by_scope_fix.dart';
 import 'src/fixes/sort_named_parameters_fix.dart';
+import 'src/rules/export_library.dart';
 import 'src/rules/sort_fields.dart';
 import 'src/rules/sort_functions_alphabetically.dart';
 import 'src/rules/sort_functions_by_scope.dart';
@@ -20,6 +22,11 @@ class IltLintsPlugin extends Plugin {
 
   @override
   void register(PluginRegistry registry) {
+    registry.registerLintRule(ExportLibrary());
+    registry.registerFixForRule(
+      ExportLibrary.code,
+      ExportLibraryFix.new,
+    );
     registry.registerLintRule(SortFields());
     registry.registerFixForRule(
       SortFields.code,

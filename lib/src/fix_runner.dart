@@ -21,10 +21,12 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:yaml/yaml.dart';
 
+import 'fixes/export_library_fix.dart';
 import 'fixes/sort_fields_fix.dart';
 import 'fixes/sort_functions_alphabetically_fix.dart';
 import 'fixes/sort_functions_by_scope_fix.dart';
 import 'fixes/sort_named_parameters_fix.dart';
+import 'rules/export_library.dart';
 import 'rules/sort_fields.dart';
 import 'rules/sort_functions_alphabetically.dart';
 import 'rules/sort_functions_by_scope.dart';
@@ -178,6 +180,11 @@ class FixRunner {
 
   static final _ruleEntries = [
     _RuleFixEntry(
+      fixGenerator: ExportLibraryFix.new,
+      name: ExportLibrary.code.lowerCaseName,
+      ruleFactory: ExportLibrary.new,
+    ),
+    _RuleFixEntry(
       fixGenerator: SortFieldsFix.new,
       name: SortFields.code.lowerCaseName,
       ruleFactory: SortFields.new,
@@ -279,6 +286,14 @@ class FixRunner {
             normalized == 'info' ||
             normalized == 'warning' ||
             normalized == 'error') {
+          enabled.add(lower);
+        }
+      } else if (value is YamlList) {
+        enabled.add(lower);
+      } else if (value is YamlMap) {
+        if (value['enabled'] == false) {
+          enabled.remove(lower);
+        } else {
           enabled.add(lower);
         }
       }

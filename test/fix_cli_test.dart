@@ -204,10 +204,48 @@ class Example {
         workingDirectory: tempDir.path,
       );
 
-      expect(exitCode, 0);
+      expect(
+         exitCode, 0);
       expect(out.toString(), contains('Fixes that would be applied:'));
       expect(out.toString(), contains('sort_functions_alphabetically (1 fix)'));
       expect(dartFile.readAsStringSync(), original);
+    });
+
+    test('applies export_library fixes via CLI', () async {
+      File('${tempDir.path}/pubspec.yaml').writeAsStringSync('''
+name: sample_pkg
+''');
+      File('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
+plugins:
+  ilt_lints:
+    version: ^2.0.0
+    diagnostics:
+      export_library: true
+''');
+
+      Directory('${tempDir.path}/lib/src').createSync(recursive: true);
+      File('${tempDir.path}/lib/src/alpha.dart').writeAsStringSync(
+        'class Alpha {}\n',
+      );
+      File('${tempDir.path}/lib/src/beta.dart').writeAsStringSync(
+        'class Beta {}\n',
+      );
+      final exporterFile = File('${tempDir.path}/lib/sample_pkg.dart')
+        ..writeAsStringSync("export 'src/beta.dart';\n");
+
+      final out = StringBuffer();
+      final exitCode = await runFixCli(
+        [tempDir.path],
+        out: out,
+        workingDirectory: tempDir.path,
+      );
+
+      expect(exitCode, 0);
+      expect(out.toString(), contains('export_library (1 fix)'));
+      expect(
+        exporterFile.readAsStringSync(),
+        "export 'src/alpha.dart';\nexport 'src/beta.dart';\n",
+      );
     });
   });
 }

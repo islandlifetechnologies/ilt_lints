@@ -4,6 +4,7 @@ plugins:
   ilt_lints:
     path: .
     diagnostics:
+      export_library: true
       sort_fields: true
       sort_functions_alphabetically: true
       sort_functions_by_scope: true

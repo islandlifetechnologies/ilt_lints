@@ -11,10 +11,17 @@ plugins:
   ilt_lints:
     version: ^2.0.0
     diagnostics:
+      export_library: true
       sort_fields: true
       sort_functions_by_scope: true
       sort_functions_alphabetically: true
       sort_named_parameters: true
+
+# Optional; configuration values for the export_library rule
+export_library:
+  - exporter: lib/my_package.dart
+    include: lib/src/**/*.dart
+    exclude: lib/src/internal/**/*.dart
 
 # Optional; configuration values for the sort_fields rule
 sort_fields:
@@ -50,6 +57,31 @@ dart run ilt_lints:fix --dry-run lib/
 ```
 
 ## Custom Lint Rules
+
+### `export_library`
+
+Ensures all files matching an `include` glob (and not matching an optional `exclude` glob) for a configured `exporter` file are exported by that exporter. If a file overlaps `include` and `exclude`, `exclude` wins.
+
+Supports a list of options in `analysis_options.yaml`:
+
+- `exporter`: The path of the file that has the exports.
+- `include`: Glob definition of the files to scan and make sure they are exported by the exporter.
+- `exclude`: Optional glob definition of files to exclude from the exporter.
+
+If no options are passed in, defaults to:
+
+```json
+{"exporter": "lib/${packageName}.dart", "include": "lib/src/**/*.dart"}
+```
+
+```yaml
+export_library:
+  - exporter: lib/my_package.dart
+    include: lib/src/**/*.dart
+    exclude: lib/src/internal/**/*.dart
+```
+
+Includes an automated quick fix (`Export missing library files`).
 
 ### `sort_fields`
 
