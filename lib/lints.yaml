@@ -2,7 +2,7 @@ include: package:flutter_lints/flutter.yaml
 
 plugins:
   ilt_lints:
-    version: ^2.0.0-beta1
+    version: ^2.0.0-beta2
     diagnostics:
       sort_fields: true
       sort_functions_alphabetically: true
