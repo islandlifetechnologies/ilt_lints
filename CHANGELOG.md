@@ -1,3 +1,7 @@
+## 2.0.0-beta4
+
+- Updated to have `export_library` take a list for `include` / `exclude` rather than a single string.
+
 ## 2.0.0-beta3
 
 - Rolled version and retriggered build due to GH Action issue.

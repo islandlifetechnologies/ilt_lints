@@ -20,8 +20,11 @@ plugins:
 # Optional; configuration values for the export_library rule
 export_library:
   - exporter: lib/my_package.dart
-    include: lib/src/**/*.dart
-    exclude: lib/src/internal/**/*.dart
+    include:
+      - src/**/*.dart
+    exclude:
+      - "**/g.dart"
+      - "**/freezed.dart"
 
 # Optional; configuration values for the sort_fields rule
 sort_fields:
@@ -60,25 +63,24 @@ dart run ilt_lints:fix --dry-run lib/
 
 ### `export_library`
 
-Ensures all files matching an `include` glob (and not matching an optional `exclude` glob) for a configured `exporter` file are exported by that exporter. If a file overlaps `include` and `exclude`, `exclude` wins.
+Ensures all files matching any `include` glob (and not matching any optional `exclude` glob) for a configured `exporter` file are exported by that exporter. If a file overlaps `include` and `exclude`, `exclude` wins.
 
 Supports a list of options in `analysis_options.yaml`:
 
 - `exporter`: The path of the file that has the exports.
-- `include`: Glob definition of the files to scan and make sure they are exported by the exporter.
-- `exclude`: Optional glob definition of files to exclude from the exporter.
+- `include`: List of glob definitions of the files to scan and make sure they are exported by the exporter.
+- `exclude`: Optional list of glob definitions of files to exclude from the exporter.
 
 If no options are passed in, defaults to:
 
-```json
-{"exporter": "lib/${packageName}.dart", "include": "lib/src/**/*.dart"}
-```
-
 ```yaml
 export_library:
-  - exporter: lib/my_package.dart
-    include: lib/src/**/*.dart
-    exclude: lib/src/internal/**/*.dart
+  - exporter: lib/${packageName}.dart
+    include:
+      - src/**/*.dart
+    exclude:
+      - "**/g.dart"
+      - "**/freezed.dart"
 ```
 
 Includes an automated quick fix (`Export missing library files`).

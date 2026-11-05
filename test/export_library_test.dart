@@ -23,7 +23,7 @@ class ExportLibraryTest extends AnalysisRuleTest {
     super.setUp();
   }
 
-  Future<void> test_customOptionsWithIncludeAndExcludeExcludeWins() async {
+  Future<void> test_customOptionsWithIncludeAndExcludeListsExcludeWins() async {
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
       '''
@@ -33,8 +33,12 @@ linter:
 
 export_library:
   - exporter: lib/custom_exporter.dart
-    include: lib/feature/**/*.dart
-    exclude: lib/feature/internal/**/*.dart
+    include:
+      - feature/**/*.dart
+      - extra/**/*.dart
+    exclude:
+      - feature/internal/**/*.dart
+      - extra/secret.dart
 ''',
     );
 
@@ -47,6 +51,8 @@ export_library:
       '$testPackageLibPath/feature/internal/secret.dart',
       'class Secret {}',
     );
+    newFile('$testPackageLibPath/extra/public_c.dart', 'class PublicC {}');
+    newFile('$testPackageLibPath/extra/secret.dart', 'class ExtraSecret {}');
 
     final exporterPath = '$testPackageLibPath/custom_exporter.dart';
     const original = '''
@@ -64,10 +70,21 @@ export 'feature/public_a.dart';
     expect(
       fixed,
       '''
+export 'extra/public_c.dart';
 export 'feature/public_a.dart';
 export 'feature/sub/public_b.dart';
 ''',
     );
+  }
+
+  Future<void> test_defaultExcludesGAndFreezedFiles() async {
+    newFile('$testPackageLibPath/src/alpha.dart', 'class Alpha {}');
+    newFile('$testPackageLibPath/src/g.dart', 'class Generated {}');
+    newFile('$testPackageLibPath/src/nested/freezed.dart', 'class Freezed {}');
+
+    await assertNoDiagnostics('''
+export 'src/alpha.dart';
+''');
   }
 
   Future<void> test_defaultOptionsAllFilesExportedValid() async {
@@ -165,10 +182,13 @@ linter:
 
 export_library:
   - exporter: lib/first.dart
-    include: lib/first/**/*.dart
+    include:
+      - first/**/*.dart
   - exporter: lib/second.dart
-    include: lib/second/**/*.dart
-    exclude: lib/second/private_*.dart
+    include:
+      - second/**/*.dart
+    exclude:
+      - second/private_*.dart
 ''',
     );
 

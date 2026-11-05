@@ -12,19 +12,19 @@ import 'package:yaml/yaml.dart';
 /// Configuration for a single exporter file in [ExportLibrary].
 class ExportLibraryOption {
   const ExportLibraryOption({
-    this.exclude,
-    required this.exporter,
-    required this.include,
+    this.exclude = defaultExclude,
+    this.exporter = defaultExporter,
+    this.include = defaultInclude,
   });
 
-  static const defaultOption = ExportLibraryOption(
-    exporter: r'lib/${packageName}.dart',
-    include: 'lib/src/**/*.dart',
-  );
+  static const defaultExclude = ['**/g.dart', '**/freezed.dart'];
+  static const defaultExporter = r'lib/${packageName}.dart';
+  static const defaultInclude = ['src/**/*.dart'];
+  static const defaultOption = ExportLibraryOption();
 
-  final String? exclude;
+  final List<String> exclude;
   final String exporter;
-  final String include;
+  final List<String> include;
 }
 
 /// Resolved custom configuration options for [ExportLibrary].
@@ -36,12 +36,14 @@ class ExportLibraryOptions {
   final List<ExportLibraryOption> options;
 }
 
-/// A lint rule that ensures all files matching an `include` glob (and not
-/// matching an optional `exclude` glob) for a configured `exporter` file are
-/// exported by that exporter.
+/// A lint rule that ensures all files matching any `include` glob (and not
+/// matching any `exclude` glob) for a configured `exporter` file are exported
+/// by that exporter.
 ///
 /// If no options are passed in, defaults to:
-/// `{"exporter": "lib/${packageName}.dart", "include": "lib/src/**/*.dart"}`.
+/// - `exporter`: `lib/${packageName}.dart`
+/// - `include`: `['src/**/*.dart']`
+/// - `exclude`: `['**/g.dart', '**/freezed.dart']`
 class ExportLibrary extends AnalysisRule {
   ExportLibrary({List<ExportLibraryOption>? options})
     : options = options != null
@@ -120,6 +122,7 @@ class ExportLibrary extends AnalysisRule {
       return const [];
     }
 
+    final exporterDirRelativePath = p.posix.dirname(fileRelativePath);
     final allDartFiles = <File>[];
     _collectDartFiles(packageRoot, allDartFiles);
 
@@ -131,31 +134,34 @@ class ExportLibrary extends AnalysisRule {
       final candidateRelativePath = _toPosixPath(
         pathContext.relative(candidate.path, from: packageRoot.path),
       );
+      final candidateRelativeToExporter = exporterDirRelativePath == '.'
+          ? candidateRelativePath
+          : (p.posix.isWithin(exporterDirRelativePath, candidateRelativePath)
+                ? p.posix.relative(
+                    candidateRelativePath,
+                    from: exporterDirRelativePath,
+                  )
+                : null);
 
       for (final option in matchingOptions) {
-        final includePattern = _normalizePattern(
-          option.include.replaceAll(r'${packageName}', packageName),
+        final isIncluded = _matchesAnyGlob(
+          option.include,
+          candidateRelativePath: candidateRelativePath,
+          candidateRelativeToExporter: candidateRelativeToExporter,
+          packageName: packageName,
         );
-        if (includePattern.isEmpty) {
-          continue;
-        }
-        final includeGlob = Glob(includePattern, context: p.posix);
-        if (!includeGlob.matches(candidateRelativePath)) {
+        if (!isIncluded) {
           continue;
         }
 
-        final rawExclude = option.exclude;
-        if (rawExclude != null && rawExclude.isNotEmpty) {
-          final excludePattern = _normalizePattern(
-            rawExclude.replaceAll(r'${packageName}', packageName),
-          );
-          if (excludePattern.isNotEmpty &&
-              Glob(
-                excludePattern,
-                context: p.posix,
-              ).matches(candidateRelativePath)) {
-            continue;
-          }
+        final isExcluded = _matchesAnyGlob(
+          option.exclude,
+          candidateRelativePath: candidateRelativePath,
+          candidateRelativeToExporter: candidateRelativeToExporter,
+          packageName: packageName,
+        );
+        if (isExcluded) {
+          continue;
         }
 
         requiredRelativePaths.add(p.posix.normalize(candidateRelativePath));
@@ -167,7 +173,6 @@ class ExportLibrary extends AnalysisRule {
       return const [];
     }
 
-    final exporterDirRelativePath = p.posix.dirname(fileRelativePath);
     final exportedRelativePaths = <String>{};
     final packagePrefix = 'package:$packageName/';
 
@@ -358,6 +363,31 @@ class ExportLibrary extends AnalysisRule {
     return null;
   }
 
+  static bool _matchesAnyGlob(
+    List<String> patterns, {
+    required String candidateRelativePath,
+    required String? candidateRelativeToExporter,
+    required String packageName,
+  }) {
+    for (final rawPattern in patterns) {
+      final pattern = _normalizePattern(
+        rawPattern.replaceAll(r'${packageName}', packageName),
+      );
+      if (pattern.isEmpty) {
+        continue;
+      }
+      final glob = Glob(pattern, context: p.posix);
+      if (glob.matches(candidateRelativePath)) {
+        return true;
+      }
+      if (candidateRelativeToExporter != null &&
+          glob.matches(candidateRelativeToExporter)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   static String _normalizePattern(String pattern) {
     var normalized = pattern.replaceAll(r'\', '/').trim();
     while (normalized.startsWith('./')) {
@@ -378,16 +408,33 @@ class ExportLibrary extends AnalysisRule {
     }
     final exporter = map['exporter'] is String
         ? map['exporter'] as String
-        : ExportLibraryOption.defaultOption.exporter;
-    final include = map['include'] is String
-        ? map['include'] as String
-        : ExportLibraryOption.defaultOption.include;
-    final exclude = map['exclude'] is String ? map['exclude'] as String : null;
+        : ExportLibraryOption.defaultExporter;
+    final include =
+        _parsePatternList(map['include']) ?? ExportLibraryOption.defaultInclude;
+    final exclude = hasExclude
+        ? (_parsePatternList(map['exclude']) ?? const <String>[])
+        : ExportLibraryOption.defaultExclude;
     return ExportLibraryOption(
-      exclude: exclude,
+      exclude: List<String>.unmodifiable(exclude),
       exporter: exporter,
-      include: include,
+      include: List<String>.unmodifiable(include),
     );
+  }
+
+  static List<String>? _parsePatternList(Object? raw) {
+    if (raw is YamlList) {
+      final result = <String>[];
+      for (final item in raw.nodes) {
+        if (item case YamlScalar(value: final String pattern)) {
+          result.add(pattern);
+        }
+      }
+      return result;
+    }
+    if (raw is String) {
+      return [raw];
+    }
+    return null;
   }
 
   static String? _readPackageNameFromPubspec(File pubspecFile) {
@@ -506,4 +553,3 @@ class _Visitor extends SimpleAstVisitor<void> {
     );
   }
 }
-
