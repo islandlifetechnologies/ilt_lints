@@ -247,5 +247,42 @@ plugins:
         "export 'src/alpha.dart';\nexport 'src/beta.dart';\n",
       );
     });
+
+    test('applies valid_json_serializable fixes via CLI', () async {
+      File('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
+plugins:
+  ilt_lints:
+    version: ^2.0.0
+    diagnostics:
+      valid_json_serializable: true
+''');
+
+      final dartFile = File('${tempDir.path}/model.dart');
+      dartFile.writeAsStringSync(r'''
+class JsonSerializable {
+  const JsonSerializable();
+}
+
+@JsonSerializable()
+class User {
+  final String name;
+
+  User(this.name);
+}
+''');
+
+      final out = StringBuffer();
+      final exitCode = await runFixCli(
+        [tempDir.path],
+        out: out,
+        workingDirectory: tempDir.path,
+      );
+
+      expect(exitCode, 0);
+      expect(out.toString(), contains('valid_json_serializable (1 fix)'));
+      final content = dartFile.readAsStringSync();
+      expect(content, contains(r'factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);'));
+      expect(content, contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'));
+    });
   });
 }

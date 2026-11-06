@@ -6,11 +6,13 @@ import 'src/fixes/sort_fields_fix.dart';
 import 'src/fixes/sort_functions_alphabetically_fix.dart';
 import 'src/fixes/sort_functions_by_scope_fix.dart';
 import 'src/fixes/sort_named_parameters_fix.dart';
+import 'src/fixes/valid_json_serializable_fix.dart';
 import 'src/rules/export_library.dart';
 import 'src/rules/sort_fields.dart';
 import 'src/rules/sort_functions_alphabetically.dart';
 import 'src/rules/sort_functions_by_scope.dart';
 import 'src/rules/sort_named_parameters.dart';
+import 'src/rules/valid_json_serializable.dart';
 
 /// The analyzer plugin entry point for `ilt_lints`.
 final plugin = IltLintsPlugin();
@@ -46,6 +48,11 @@ class IltLintsPlugin extends Plugin {
     registry.registerFixForRule(
       SortNamedParameters.code,
       SortNamedParametersFix.new,
+    );
+    registry.registerLintRule(ValidJsonSerializable());
+    registry.registerFixForRule(
+      ValidJsonSerializable.code,
+      ValidJsonSerializableFix.new,
     );
   }
 }

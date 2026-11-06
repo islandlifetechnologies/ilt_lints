@@ -1,0 +1,261 @@
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+
+/// Result of analyzing a [ClassDeclaration] for [ValidJsonSerializable].
+class ValidJsonSerializableAnalysis {
+  const ValidJsonSerializableAnalysis({
+    required this.className,
+    required this.classNameToken,
+    required this.classNode,
+    required this.existingFromJson,
+    required this.existingToJson,
+    required this.hasPrimaryConstructor,
+    required this.needsFromJson,
+    required this.needsToJson,
+  });
+
+  final String className;
+  final Token classNameToken;
+  final ClassDeclaration classNode;
+  final ClassMember? existingFromJson;
+  final MethodDeclaration? existingToJson;
+  final bool hasPrimaryConstructor;
+  final bool needsFromJson;
+  final bool needsToJson;
+
+  bool get hasIssues => needsFromJson || needsToJson;
+}
+
+/// A lint rule that ensures classes annotated with `@JsonSerializable` define:
+/// 1. A `fromJson` factory (or static function) calling `_$<ClassName>FromJson`
+///    when `createFactory: true` (or defaulted to true by JsonSerializable).
+/// 2. A `toJson` method calling `_$<ClassName>ToJson` when `createToJson: true`
+///    (or defaulted to true by JsonSerializable).
+class ValidJsonSerializable extends AnalysisRule {
+  ValidJsonSerializable()
+    : super(
+        description:
+            'Ensure @JsonSerializable classes define valid fromJson and toJson methods calling the generated functions.',
+        name: code.lowerCaseName,
+      );
+
+  static const code = LintCode(
+    'valid_json_serializable',
+    'Invalid @JsonSerializable class {0}: {1}.',
+    correctionMessage:
+        'Try adding or updating fromJson and toJson to call the generated functions.',
+  );
+
+  /// Analyzes [node] and returns a [ValidJsonSerializableAnalysis] if [node] is
+  /// annotated with `@JsonSerializable`, or `null` otherwise.
+  static ValidJsonSerializableAnalysis? analyzeClass(ClassDeclaration node) {
+    final config = _extractJsonSerializableConfig(node.metadata);
+    if (config == null) {
+      return null;
+    }
+    final (createFactory, createToJson) = config;
+    final classNameToken = node.namePart.typeName;
+    final className = classNameToken.lexeme;
+    final hasPrimaryConstructor = node.namePart is PrimaryConstructorDeclaration;
+
+    final body = node.body;
+    final members = body is BlockClassBody
+        ? body.members
+        : const <ClassMember>[];
+
+    ClassMember? existingFromJson;
+    MethodDeclaration? existingToJson;
+
+    for (final member in members) {
+      if (member is ConstructorDeclaration) {
+        if (member.name?.lexeme == 'fromJson') {
+          existingFromJson ??= member;
+        }
+      } else if (member is MethodDeclaration) {
+        if (!member.isGetter &&
+            !member.isSetter &&
+            !member.isOperator &&
+            member.name.lexeme == 'fromJson') {
+          existingFromJson ??= member;
+        } else if (!member.isGetter &&
+            !member.isSetter &&
+            !member.isOperator &&
+            member.name.lexeme == 'toJson') {
+          existingToJson ??= member;
+        }
+      }
+    }
+
+    final fromJsonGenerated = '_\$${className}FromJson';
+    var hasValidFromJson = false;
+    if (existingFromJson is ConstructorDeclaration) {
+      hasValidFromJson =
+          existingFromJson.factoryKeyword != null &&
+          _callsFunction(existingFromJson.body, fromJsonGenerated);
+    } else if (existingFromJson is MethodDeclaration) {
+      hasValidFromJson =
+          existingFromJson.isStatic &&
+          _callsFunction(existingFromJson.body, fromJsonGenerated);
+    }
+
+    final toJsonGenerated = '_\$${className}ToJson';
+    final hasValidToJson =
+        existingToJson != null &&
+        !existingToJson.isStatic &&
+        _callsFunction(existingToJson.body, toJsonGenerated);
+
+    return ValidJsonSerializableAnalysis(
+      className: className,
+      classNameToken: classNameToken,
+      classNode: node,
+      existingFromJson: existingFromJson,
+      existingToJson: existingToJson,
+      hasPrimaryConstructor: hasPrimaryConstructor,
+      needsFromJson: createFactory && !hasValidFromJson,
+      needsToJson: createToJson && !hasValidToJson,
+    );
+  }
+
+  static bool _callsFunction(FunctionBody body, String functionName) {
+    final finder = _FunctionCallFinder(functionName);
+    body.accept(finder);
+    return finder.found;
+  }
+
+  static (bool, bool)? _extractJsonSerializableConfig(
+    NodeList<Annotation> metadata,
+  ) {
+    for (final annotation in metadata) {
+      if (!_isJsonSerializableAnnotation(annotation)) {
+        continue;
+      }
+      var createFactory = true;
+      var createToJson = true;
+
+      final constValue = annotation.elementAnnotation?.computeConstantValue();
+      if (constValue != null) {
+        final factoryField = constValue.getField('createFactory')?.toBoolValue();
+        if (factoryField != null) {
+          createFactory = factoryField;
+        }
+        final toJsonField = constValue.getField('createToJson')?.toBoolValue();
+        if (toJsonField != null) {
+          createToJson = toJsonField;
+        }
+      }
+
+      final arguments = annotation.arguments?.arguments;
+      if (arguments != null) {
+        for (final argument in arguments) {
+          if (argument is! NamedArgument) {
+            continue;
+          }
+          final name = argument.name.lexeme;
+          final expr = argument.argumentExpression;
+          if (name == 'createFactory' && expr is BooleanLiteral) {
+            createFactory = expr.value;
+          } else if (name == 'createToJson' && expr is BooleanLiteral) {
+            createToJson = expr.value;
+          }
+        }
+      }
+
+      return (createFactory, createToJson);
+    }
+    return null;
+  }
+
+  static bool _isJsonSerializableAnnotation(Annotation annotation) {
+    final identifier = annotation.name;
+    if (identifier is SimpleIdentifier) {
+      if (identifier.name == 'JsonSerializable') {
+        return true;
+      }
+    } else if (identifier is PrefixedIdentifier) {
+      if (identifier.identifier.name == 'JsonSerializable') {
+        return true;
+      }
+    }
+    final elementTypeName = annotation.elementAnnotation
+        ?.computeConstantValue()
+        ?.type
+        ?.element
+        ?.name;
+    return elementTypeName == 'JsonSerializable';
+  }
+
+  @override
+  LintCode get diagnosticCode => code;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    final visitor = _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+  }
+}
+
+class _FunctionCallFinder extends RecursiveAstVisitor<void> {
+  _FunctionCallFinder(this.targetName);
+
+  final String targetName;
+  var found = false;
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    if (node.function case SimpleIdentifier(:final name)) {
+      if (name == targetName) {
+        found = true;
+        return;
+      }
+    }
+    super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    if (node.methodName.name == targetName) {
+      found = true;
+      return;
+    }
+    super.visitMethodInvocation(node);
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  _Visitor(this.rule);
+
+  final ValidJsonSerializable rule;
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    final analysis = ValidJsonSerializable.analyzeClass(node);
+    if (analysis == null || !analysis.hasIssues) {
+      return;
+    }
+
+    final className = analysis.className;
+    final problems = <String>[];
+    if (analysis.needsFromJson) {
+      problems.add(
+        "missing valid 'fromJson' calling '_\$${className}FromJson'",
+      );
+    }
+    if (analysis.needsToJson) {
+      problems.add("missing valid 'toJson' calling '_\$${className}ToJson'");
+    }
+
+    rule.reportAtToken(
+      analysis.classNameToken,
+      arguments: [className, problems.join(' and ')],
+    );
+  }
+}
+

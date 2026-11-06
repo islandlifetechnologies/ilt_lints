@@ -26,11 +26,13 @@ import 'fixes/sort_fields_fix.dart';
 import 'fixes/sort_functions_alphabetically_fix.dart';
 import 'fixes/sort_functions_by_scope_fix.dart';
 import 'fixes/sort_named_parameters_fix.dart';
+import 'fixes/valid_json_serializable_fix.dart';
 import 'rules/export_library.dart';
 import 'rules/sort_fields.dart';
 import 'rules/sort_functions_alphabetically.dart';
 import 'rules/sort_functions_by_scope.dart';
 import 'rules/sort_named_parameters.dart';
+import 'rules/valid_json_serializable.dart';
 
 /// Runs the `ilt_lints` CLI fix tool with [args].
 Future<int> runFixCli(
@@ -203,6 +205,11 @@ class FixRunner {
       fixGenerator: SortNamedParametersFix.new,
       name: SortNamedParameters.code.lowerCaseName,
       ruleFactory: SortNamedParameters.new,
+    ),
+    _RuleFixEntry(
+      fixGenerator: ValidJsonSerializableFix.new,
+      name: ValidJsonSerializable.code.lowerCaseName,
+      ruleFactory: ValidJsonSerializable.new,
     ),
   ];
 

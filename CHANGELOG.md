@@ -1,3 +1,7 @@
+## 2.0.0-beta5
+
+- Added `valid_json_serializable` to validate if a file has @JsonSerializable annotation, proper fromJson/toJson factory/methods, with quick fix.
+
 ## 2.0.0-beta4
 
 - Updated to have `export_library` take a list for `include` / `exclude` rather than a single string.

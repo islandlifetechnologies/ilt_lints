@@ -8,6 +8,7 @@ plugins:
       sort_functions_alphabetically: true
       sort_functions_by_scope: true
       sort_named_parameters: true
+      valid_json_serializable: true
 
 linter:
   rules:

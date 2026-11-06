@@ -16,6 +16,7 @@ plugins:
       sort_functions_by_scope: true
       sort_functions_alphabetically: true
       sort_named_parameters: true
+      valid_json_serializable: true
 
 # Optional; configuration values for the export_library rule
 export_library:
@@ -151,3 +152,11 @@ sort_named_parameters:
 ```
 
 Includes an automated quick fix (`Sort named parameters alphabetically`).
+
+### `valid_json_serializable`
+
+Ensures classes annotated with `@JsonSerializable` have valid generated helper call methods:
+1. If `createFactory` is `true` (or not explicitly `false`), ensures a factory constructor or static function named `fromJson` exists and calls the generated `_$<ClassName>FromJson` function.
+2. If `createToJson` is `true` (or not explicitly `false`), ensures a `toJson` instance method exists and calls the generated `_$<ClassName>ToJson` function.
+
+Includes an automated quick fix (`Add valid fromJson and/or toJson`) that generates factory constructors (using the simplified `factory fromJson(...)` form when a primary constructor is present) and `toJson` methods. Runs with `dart run ilt_lints:fix`.
