@@ -76,9 +76,7 @@ enum Status {
   void pubInstance() {}
 }
 ''',
-      [
-        lint(70, 11),
-      ],
+      [lint(70, 11)],
     );
   }
 
@@ -90,9 +88,7 @@ extension MyExt on String {
   int get pubGetter => length;
 }
 ''',
-      [
-        lint(64, 9),
-      ],
+      [lint(64, 9)],
     );
   }
 
@@ -104,14 +100,12 @@ extension type Id(int value) {
   static Id create() => Id(0);
 }
 ''',
-      [
-        lint(67, 6),
-      ],
+      [lint(67, 6)],
     );
   }
 
   Future<void>
-      test_fixSortsAllScopesAndPreservesCommentsAndIgnoredMembers() async {
+  test_fixSortsAllScopesAndPreservesCommentsAndIgnoredMembers() async {
     const original = r'''
 class Example {
   final int x;
@@ -214,9 +208,7 @@ mixin MyMixin {
   int get pubGetter => 1;
 }
 ''',
-      [
-        lint(50, 9),
-      ],
+      [lint(50, 9)],
     );
   }
 
@@ -228,9 +220,7 @@ class Example {
   int get _privGetter => 1;
 }
 ''',
-      [
-        lint(54, 11),
-      ],
+      [lint(54, 11)],
     );
   }
 
@@ -242,9 +232,7 @@ class Example {
   set _privSetter(int v) {}
 }
 ''',
-      [
-        lint(46, 11),
-      ],
+      [lint(46, 11)],
     );
   }
 
@@ -256,9 +244,7 @@ class Example {
   static void _privStatic() {}
 }
 ''',
-      [
-        lint(56, 11),
-      ],
+      [lint(56, 11)],
     );
   }
 
@@ -270,9 +256,7 @@ class Example {
   int get pubGetter => 1;
 }
 ''',
-      [
-        lint(52, 9),
-      ],
+      [lint(52, 9)],
     );
   }
 
@@ -284,9 +268,7 @@ class Example {
   void pubInstance() {}
 }
 ''',
-      [
-        lint(49, 11),
-      ],
+      [lint(49, 11)],
     );
   }
 
@@ -298,9 +280,7 @@ class Example {
   set pubSetter(int v) {}
 }
 ''',
-      [
-        lint(50, 9),
-      ],
+      [lint(50, 9)],
     );
   }
 
@@ -312,14 +292,12 @@ class Example {
   static void pubStatic() {}
 }
 ''',
-      [
-        lint(61, 9),
-      ],
+      [lint(61, 9)],
     );
   }
 
   Future<void>
-      test_staticGetterAndSetterSubgroupedBeforeStaticFunctions() async {
+  test_staticGetterAndSetterSubgroupedBeforeStaticFunctions() async {
     await assertDiagnostics(
       r'''
 class Example {
@@ -331,12 +309,7 @@ class Example {
   static int get _privStaticGetter => 1;
 }
 ''',
-      [
-        lint(58, 15),
-        lint(101, 15),
-        lint(167, 17),
-        lint(212, 17),
-      ],
+      [lint(58, 15), lint(101, 15), lint(167, 17), lint(212, 17)],
     );
   }
 

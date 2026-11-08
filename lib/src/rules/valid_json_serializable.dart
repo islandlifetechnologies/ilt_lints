@@ -39,16 +39,14 @@ class ValidJsonSerializableAnalysis {
 class ValidJsonSerializable extends AnalysisRule {
   ValidJsonSerializable()
     : super(
-        description:
-            'Ensure @JsonSerializable classes define valid fromJson and toJson methods calling the generated functions.',
+        description: 'Ensure @JsonSerializable classes define valid fromJson and toJson methods calling the generated functions.',
         name: code.lowerCaseName,
       );
 
   static const code = LintCode(
     'valid_json_serializable',
     'Invalid @JsonSerializable class {0}: {1}.',
-    correctionMessage:
-        'Try adding or updating fromJson and toJson to call the generated functions.',
+    correctionMessage: 'Try adding or updating fromJson and toJson to call the generated functions.',
   );
 
   /// Analyzes [node] and returns a [ValidJsonSerializableAnalysis] if [node] is
@@ -61,7 +59,8 @@ class ValidJsonSerializable extends AnalysisRule {
     final (createFactory, createToJson) = config;
     final classNameToken = node.namePart.typeName;
     final className = classNameToken.lexeme;
-    final hasPrimaryConstructor = node.namePart is PrimaryConstructorDeclaration;
+    final hasPrimaryConstructor =
+        node.namePart is PrimaryConstructorDeclaration;
 
     final body = node.body;
     final members = body is BlockClassBody
@@ -139,7 +138,9 @@ class ValidJsonSerializable extends AnalysisRule {
 
       final constValue = annotation.elementAnnotation?.computeConstantValue();
       if (constValue != null) {
-        final factoryField = constValue.getField('createFactory')?.toBoolValue();
+        final factoryField = constValue
+            .getField('createFactory')
+            ?.toBoolValue();
         if (factoryField != null) {
           createFactory = factoryField;
         }
@@ -258,4 +259,3 @@ class _Visitor extends SimpleAstVisitor<void> {
     );
   }
 }
-

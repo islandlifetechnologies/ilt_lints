@@ -13,10 +13,8 @@ import '../rules/sort_fields.dart';
 /// `final` vs non-`final` (when `final_first` is enabled), and alphabetically
 /// within each group.
 class SortFieldsFix extends ResolvedCorrectionProducer {
-  SortFieldsFix({
-    required super.context,
-    bool? finalFirst,
-  }) : _finalFirstOverride = finalFirst;
+  SortFieldsFix({required super.context, bool? finalFirst})
+    : _finalFirstOverride = finalFirst;
 
   static const _fixKind = FixKind(
     'dart.fix.sortFields',
@@ -48,8 +46,9 @@ class SortFieldsFix extends ResolvedCorrectionProducer {
     }
 
     final analysisContext = unitResult.session.analysisContext;
-    final currentFile =
-        unitResult.session.resourceProvider.getFile(unitResult.path);
+    final currentFile = unitResult.session.resourceProvider.getFile(
+      unitResult.path,
+    );
     final fileOptions = SortFields.readOptions(
       currentFile,
       optionsFile: analysisContext.contextRoot.optionsFile,
@@ -173,10 +172,7 @@ class _FieldEntry {
 }
 
 class _MemberSlot {
-  const _MemberSlot({
-    required this.range,
-    required this.text,
-  });
+  const _MemberSlot({required this.range, required this.text});
 
   final SourceRange range;
   final String text;

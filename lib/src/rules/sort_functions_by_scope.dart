@@ -77,11 +77,10 @@ enum FunctionScope {
 /// 12. Private instance functions
 class SortFunctionsByScope extends AnalysisRule {
   SortFunctionsByScope()
-      : super(
-          description:
-              'Sort functions, getters, and setters by static/instance and visibility scope.',
-          name: code.lowerCaseName,
-        );
+    : super(
+        description: 'Sort functions, getters, and setters by static/instance and visibility scope.',
+        name: code.lowerCaseName,
+      );
 
   static const code = LintCode(
     'sort_functions_by_scope',

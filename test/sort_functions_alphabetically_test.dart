@@ -89,17 +89,12 @@ extension type Id(int value) {
   void alpha() {}
 }
 ''',
-      [
-        lint(48, 5),
-        lint(102, 5),
-        lint(168, 5),
-        lint(237, 5),
-      ],
+      [lint(48, 5), lint(102, 5), lint(168, 5), lint(237, 5)],
     );
   }
 
   Future<void>
-      test_fixSortsAlphabeticallyWithinEachScopeAndPreservesComments() async {
+  test_fixSortsAlphabeticallyWithinEachScopeAndPreservesComments() async {
     const original = r'''
 class Example {
   static void charlieStatic() {}
@@ -181,9 +176,7 @@ class Example {
   int get _alpha => 2;
 }
 ''',
-      [
-        lint(48, 6),
-      ],
+      [lint(48, 6)],
     );
   }
 
@@ -195,9 +188,7 @@ class Example {
   void _alpha() {}
 }
 ''',
-      [
-        lint(41, 6),
-      ],
+      [lint(41, 6)],
     );
   }
 
@@ -209,9 +200,7 @@ class Example {
   set _alpha(int v) {}
 }
 ''',
-      [
-        lint(44, 6),
-      ],
+      [lint(44, 6)],
     );
   }
 
@@ -223,9 +212,7 @@ class Example {
   static void _alpha() {}
 }
 ''',
-      [
-        lint(55, 6),
-      ],
+      [lint(55, 6)],
     );
   }
 
@@ -237,9 +224,7 @@ class Example {
   int get alpha => 2;
 }
 ''',
-      [
-        lint(47, 5),
-      ],
+      [lint(47, 5)],
     );
   }
 
@@ -252,10 +237,7 @@ class Example {
   void alpha() {}
 }
 ''',
-      [
-        lint(43, 5),
-        lint(61, 5),
-      ],
+      [lint(43, 5), lint(61, 5)],
     );
   }
 
@@ -267,9 +249,7 @@ class Example {
   set alpha(int v) {}
 }
 ''',
-      [
-        lint(43, 5),
-      ],
+      [lint(43, 5)],
     );
   }
 
@@ -281,9 +261,7 @@ class Example {
   static void alpha() {}
 }
 ''',
-      [
-        lint(54, 5),
-      ],
+      [lint(54, 5)],
     );
   }
 
@@ -295,9 +273,7 @@ class Example {
   static int get alpha => 2;
 }
 ''',
-      [
-        lint(61, 5),
-      ],
+      [lint(61, 5)],
     );
   }
 
@@ -309,14 +285,12 @@ class Example {
   static set alpha(int v) {}
 }
 ''',
-      [
-        lint(57, 5),
-      ],
+      [lint(57, 5)],
     );
   }
 
   Future<void>
-      test_staticGettersSettersAndMethodsHaveSeparateAlphabeticalScopes() async {
+  test_staticGettersSettersAndMethodsHaveSeparateAlphabeticalScopes() async {
     await assertNoDiagnostics(r'''
 class Example {
   static int get zebraGetter => 1;

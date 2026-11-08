@@ -31,12 +31,11 @@ class SortNamedParameters extends AnalysisRule {
   SortNamedParameters({
     Iterable<String> ignore = const [],
     this.requiredFirst = false,
-  })  : ignore = Set<String>.unmodifiable(ignore),
-        super(
-          description:
-              'Sort named parameters and arguments alphabetically.',
-          name: code.lowerCaseName,
-        );
+  }) : ignore = Set<String>.unmodifiable(ignore),
+       super(
+         description: 'Sort named parameters and arguments alphabetically.',
+         name: code.lowerCaseName,
+       );
 
   static const code = LintCode(
     'sort_named_parameters',
@@ -61,10 +60,7 @@ class SortNamedParameters extends AnalysisRule {
 
   /// Reads the configured `ignore` parameter names for `sort_named_parameters`
   /// from `analysis_options.yaml` starting from [startFile] or [optionsFile].
-  static Set<String> readIgnoredNames(
-    File? startFile, {
-    File? optionsFile,
-  }) =>
+  static Set<String> readIgnoredNames(File? startFile, {File? optionsFile}) =>
       readOptions(startFile, optionsFile: optionsFile).ignore;
 
   /// Reads the configured [SortNamedParametersOptions] (`ignore` and
@@ -170,8 +166,12 @@ class SortNamedParameters extends AnalysisRule {
   ) {
     File? optionsFile;
     try {
-      optionsFile =
-          context.libraryElement?.session.analysisContext.contextRoot.optionsFile;
+      optionsFile = context
+          .libraryElement
+          ?.session
+          .analysisContext
+          .contextRoot
+          .optionsFile;
     } on Object {
       optionsFile = null;
     }
@@ -179,10 +179,7 @@ class SortNamedParameters extends AnalysisRule {
       context.definingUnit.file,
       optionsFile: optionsFile,
     );
-    final effectiveIgnore = {
-      ...ignore,
-      ...fileOptions.ignore,
-    };
+    final effectiveIgnore = {...ignore, ...fileOptions.ignore};
     final effectiveRequiredFirst = requiredFirst || fileOptions.requiredFirst;
     final visitor = _Visitor(
       this,
@@ -220,10 +217,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (maxName == null || name.compareTo(maxName) >= 0) {
         maxName = name;
       } else {
-        rule.reportAtToken(
-          nameToken,
-          arguments: [name, maxName],
-        );
+        rule.reportAtToken(nameToken, arguments: [name, maxName]);
       }
     }
   }
@@ -253,41 +247,27 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (maxName == null || name.compareTo(maxName) >= 0) {
           maxName = name;
         } else {
-          rule.reportAtToken(
-            nameToken,
-            arguments: [name, maxName],
-          );
+          rule.reportAtToken(nameToken, arguments: [name, maxName]);
         }
         continue;
       }
 
       if (parameter.isRequiredNamed) {
         if (lastOptionalName != null) {
-          rule.reportAtToken(
-            nameToken,
-            arguments: [name, lastOptionalName],
-          );
+          rule.reportAtToken(nameToken, arguments: [name, lastOptionalName]);
         } else if (maxRequiredName != null &&
             name.compareTo(maxRequiredName) < 0) {
-          rule.reportAtToken(
-            nameToken,
-            arguments: [name, maxRequiredName],
-          );
+          rule.reportAtToken(nameToken, arguments: [name, maxRequiredName]);
         }
-        if (maxRequiredName == null ||
-            name.compareTo(maxRequiredName) >= 0) {
+        if (maxRequiredName == null || name.compareTo(maxRequiredName) >= 0) {
           maxRequiredName = name;
         }
       } else {
         lastOptionalName = name;
-        if (maxOptionalName == null ||
-            name.compareTo(maxOptionalName) >= 0) {
+        if (maxOptionalName == null || name.compareTo(maxOptionalName) >= 0) {
           maxOptionalName = name;
         } else {
-          rule.reportAtToken(
-            nameToken,
-            arguments: [name, maxOptionalName],
-          );
+          rule.reportAtToken(nameToken, arguments: [name, maxOptionalName]);
         }
       }
     }

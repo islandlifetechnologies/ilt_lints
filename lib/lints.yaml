@@ -2,12 +2,16 @@ include: package:flutter_lints/flutter.yaml
 
 plugins:
   ilt_lints:
-    version: ^2.0.0-beta3
+    version: ^2.0.0-beta6
     diagnostics:
+      prefer_const_constructors: true
+      prefer_primary_constructors: true
       sort_fields: true
       sort_functions_alphabetically: true
       sort_functions_by_scope: true
       sort_named_parameters: true
+      use_clock: true
+      use_file_system: true
       valid_json_serializable: true
 
 linter:
@@ -26,6 +30,7 @@ linter:
     - omit_local_variable_types
     - omit_obvious_local_variable_types
     - omit_obvious_property_types
+    - prefer_const_declarations
     - prefer_final_fields
     - prefer_final_locals
     - prefer_final_in_for_each
@@ -37,7 +42,7 @@ linter:
     - unawaited_futures
     - unnecessary_await_in_return
     - unnecessary_primary_constructor_body
+    - use_declaring_parameters
     - use_full_hex_values_for_flutter_colors
     - use_named_constants
-    # - use_primary_constructors # Doesn't exist yet - https://github.com/dart-lang/core/issues/961
     - use_string_buffers

@@ -34,9 +34,7 @@ void caller() {
   Example(beta: 2, alpha: 1);
 }
 ''',
-      [
-        lint(90, 5),
-      ],
+      [lint(90, 5)],
     );
   }
 
@@ -50,17 +48,13 @@ class Example {
   Example({required this.beta, required this.alpha});
 }
 ''',
-      [
-        lint(99, 5),
-      ],
+      [lint(99, 5)],
     );
   }
 
   Future<void>
-      test_fixSortsDeclarationAndCallSitePreservingIgnoredParameters() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
+  test_fixSortsDeclarationAndCallSitePreservingIgnoredParameters() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - sort_named_parameters
@@ -69,8 +63,7 @@ sort_named_parameters:
   ignore:
     - key
     - child
-''',
-    );
+''');
 
     const originalDecl = r'''
 class Widget {
@@ -195,10 +188,7 @@ void caller() {
   foo(charlie: 3, beta: 2, alpha: 1);
 }
 ''',
-      [
-        lint(86, 4),
-        lint(95, 5),
-      ],
+      [lint(86, 4), lint(95, 5)],
     );
   }
 
@@ -207,17 +197,12 @@ void caller() {
       r'''
 void topLevel(int pos, {required int beta, int alpha = 0}) {}
 ''',
-      [
-        lint(47, 5),
-      ],
+      [lint(47, 5)],
     );
   }
 
-  Future<void>
-      test_ignoreOptionStillFlagsNonIgnoredUnsortedParameters() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
+  Future<void> test_ignoreOptionStillFlagsNonIgnoredUnsortedParameters() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - sort_named_parameters
@@ -227,8 +212,7 @@ ilt_lints:
     ignore:
       - key
       - child
-''',
-    );
+''');
 
     await assertDiagnostics(
       r'''
@@ -245,17 +229,12 @@ Widget build() {
   );
 }
 ''',
-      [
-        lint(60, 5),
-        lint(158, 5),
-      ],
+      [lint(60, 5), lint(158, 5)],
     );
   }
 
   Future<void> test_ignoreOptionViaAnalysisOptionsYaml() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - sort_named_parameters
@@ -264,8 +243,7 @@ sort_named_parameters:
   ignore:
     - key
     - child
-''',
-    );
+''');
 
     await assertNoDiagnostics(r'''
 class Widget {
@@ -306,7 +284,7 @@ class Example {
   }
 
   Future<void>
-      test_privateNamedParametersUnsortedAndFixedIgnoringLeadingUnderscore() async {
+  test_privateNamedParametersUnsortedAndFixedIgnoringLeadingUnderscore() async {
     const original = r'''
 class Example {
   final String _foo;
@@ -340,10 +318,8 @@ class Example {
   }
 
   Future<void>
-      test_requiredFirstFixSortsRequiredThenOptionalPreservingIgnored() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
+  test_requiredFirstFixSortsRequiredThenOptionalPreservingIgnored() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - sort_named_parameters
@@ -353,8 +329,7 @@ sort_named_parameters:
   ignore:
     - key
     - child
-''',
-    );
+''');
 
     const original = r'''
 class Widget {
@@ -387,18 +362,15 @@ class Widget {
   }
 
   Future<void>
-      test_requiredFirstFlagsRequiredAfterOptionalAndUnsortedGroups() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
+  test_requiredFirstFlagsRequiredAfterOptionalAndUnsortedGroups() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - sort_named_parameters
 
 sort_named_parameters:
   required_first: true
-''',
-    );
+''');
 
     await assertDiagnostics(
       r'''
@@ -410,19 +382,13 @@ void foo({
   int? charlie,
 }) {}
 ''',
-      [
-        lint(48, 4),
-        lint(83, 5),
-        lint(97, 7),
-      ],
+      [lint(48, 4), lint(83, 5), lint(97, 7)],
     );
   }
 
   Future<void>
-      test_requiredFirstValidInDeclarationAndCallSitePurelyAlphabetical() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
+  test_requiredFirstValidInDeclarationAndCallSitePurelyAlphabetical() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - sort_named_parameters
@@ -432,8 +398,7 @@ sort_named_parameters:
   ignore:
     - key
     - child
-''',
-    );
+''');
 
     await assertNoDiagnostics(r'''
 class Widget {
@@ -471,9 +436,7 @@ class Sub extends Base {
   Sub({super.beta, super.alpha});
 }
 ''',
-      [
-        lint(99, 5),
-      ],
+      [lint(99, 5)],
     );
   }
 

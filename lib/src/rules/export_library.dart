@@ -50,8 +50,7 @@ class ExportLibrary extends AnalysisRule {
           ? List<ExportLibraryOption>.unmodifiable(options)
           : null,
       super(
-        description:
-            'Ensure all matching files for an exporter library are exported by it.',
+        description: 'Ensure all matching files for an exporter library are exported by it.',
         name: code.lowerCaseName,
       );
 
@@ -190,8 +189,12 @@ class ExportLibrary extends AnalysisRule {
         }
       }
 
-      final exportedSourcePath =
-          directive.libraryExport?.exportedLibrary?.firstFragment.source.fullName;
+      final exportedSourcePath = directive
+          .libraryExport
+          ?.exportedLibrary
+          ?.firstFragment
+          .source
+          .fullName;
       if (exportedSourcePath != null &&
           pathContext.isWithin(packageRoot.path, exportedSourcePath)) {
         final relPath = _toPosixPath(

@@ -52,9 +52,7 @@ class User {
   User(this.name);
 }
 ''',
-      [
-        lint(155, 4),
-      ],
+      [lint(155, 4)],
     );
 
     newFile(testFile.path, r'''
@@ -90,9 +88,7 @@ class User {
   User(this.name);
 }
 ''',
-      [
-        lint(154, 4),
-      ],
+      [lint(154, 4)],
     );
 
     newFile(testFile.path, r'''
@@ -128,9 +124,7 @@ class User {
   User(this.name);
 }
 ''',
-      [
-        lint(82, 4),
-      ],
+      [lint(82, 4)],
     );
   }
 
@@ -149,8 +143,16 @@ class User {
 ''';
 
     final fixed = await _applyFix(original);
-    expect(fixed, contains(r'factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);'));
-    expect(fixed, contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'));
+    expect(
+      fixed,
+      contains(
+        r'factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);',
+      ),
+    );
+    expect(
+      fixed,
+      contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'),
+    );
   }
 
   Future<void> test_quickFixUpdatesInvalidFromJsonOrToJson() async {
@@ -172,8 +174,16 @@ class User {
 ''';
 
     final fixed = await _applyFix(original);
-    expect(fixed, contains(r'factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);'));
-    expect(fixed, contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'));
+    expect(
+      fixed,
+      contains(
+        r'factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);',
+      ),
+    );
+    expect(
+      fixed,
+      contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'),
+    );
     expect(fixed, isNot(contains("User('')")));
   }
 
@@ -189,9 +199,17 @@ class User(final String name) {
 ''';
 
     final fixed = await _applyFix(original);
-    expect(fixed, contains(r'factory fromJson(Map<String, dynamic> json) => _$UserFromJson(json);'));
+    expect(
+      fixed,
+      contains(
+        r'factory fromJson(Map<String, dynamic> json) => _$UserFromJson(json);',
+      ),
+    );
     expect(fixed, isNot(contains('factory User.fromJson')));
-    expect(fixed, contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'));
+    expect(
+      fixed,
+      contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'),
+    );
   }
 
   Future<void> test_validClassWithFactoryAndToJson() async {
@@ -241,11 +259,9 @@ Map<String, dynamic> _$UserToJson(User instance) => {'name': instance.name};
   Future<String> _applyFix(String content) async {
     newFile(testFile.path, content);
     final unitResult = await resolveFile(testFile.path);
-    final libraryResult =
-        await unitResult.session.getResolvedLibraryByElement(
-              unitResult.libraryElement,
-            )
-            as ResolvedLibraryResult;
+    final libraryResult = await unitResult.session.getResolvedLibraryByElement(
+      unitResult.libraryElement,
+    ) as ResolvedLibraryResult;
     final diagnostics = unitResult.diagnostics
         .where((d) => d.diagnosticCode == ValidJsonSerializable.code)
         .toList();

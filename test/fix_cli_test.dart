@@ -54,7 +54,10 @@ void main() {
         workingDirectory: tempDir.path,
       );
       expect(missingPathCode, 64);
-      expect(err.toString(), contains('Path does not exist: does_not_exist.dart'));
+      expect(
+        err.toString(),
+        contains('Path does not exist: does_not_exist.dart'),
+      );
     });
 
     test('applies fixes for all enabled custom lints', () async {
@@ -105,9 +108,7 @@ class Example {
       expect(out.toString(), contains('sort_functions_alphabetically'));
       expect(out.toString(), contains('sort_named_parameters'));
 
-      expect(
-        dartFile.readAsStringSync(),
-        r'''
+      expect(dartFile.readAsStringSync(), r'''
 class Example {
   Example({required this.alpha, required this.beta});
 
@@ -122,8 +123,7 @@ class Example {
   void zebraPublic({int? a, int? b}) {}
   void _privateMethod() {}
 }
-''',
-      );
+''');
     });
 
     test('only applies fixes for rules that are enabled', () async {
@@ -164,9 +164,7 @@ class Example {
 
       // Methods are sorted alphabetically, while fields and named parameters
       // remain untouched because their rules are disabled.
-      expect(
-        dartFile.readAsStringSync(),
-        r'''
+      expect(dartFile.readAsStringSync(), r'''
 class Example {
   void alpha() {}
 
@@ -175,8 +173,7 @@ class Example {
   final int zField = 1;
   final int aField = 2;
 }
-''',
-      );
+''');
     });
 
     test('--dry-run reports fixes without modifying files on disk', () async {
@@ -204,8 +201,7 @@ class Example {
         workingDirectory: tempDir.path,
       );
 
-      expect(
-         exitCode, 0);
+      expect(exitCode, 0);
       expect(out.toString(), contains('Fixes that would be applied:'));
       expect(out.toString(), contains('sort_functions_alphabetically (1 fix)'));
       expect(dartFile.readAsStringSync(), original);
@@ -224,12 +220,10 @@ plugins:
 ''');
 
       Directory('${tempDir.path}/lib/src').createSync(recursive: true);
-      File('${tempDir.path}/lib/src/alpha.dart').writeAsStringSync(
-        'class Alpha {}\n',
-      );
-      File('${tempDir.path}/lib/src/beta.dart').writeAsStringSync(
-        'class Beta {}\n',
-      );
+      File('${tempDir.path}/lib/src/alpha.dart')
+          .writeAsStringSync('class Alpha {}\n');
+      File('${tempDir.path}/lib/src/beta.dart')
+          .writeAsStringSync('class Beta {}\n');
       final exporterFile = File('${tempDir.path}/lib/sample_pkg.dart')
         ..writeAsStringSync("export 'src/beta.dart';\n");
 
@@ -281,8 +275,16 @@ class User {
       expect(exitCode, 0);
       expect(out.toString(), contains('valid_json_serializable (1 fix)'));
       final content = dartFile.readAsStringSync();
-      expect(content, contains(r'factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);'));
-      expect(content, contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'));
+      expect(
+        content,
+        contains(
+          r'factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);',
+        ),
+      );
+      expect(
+        content,
+        contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'),
+      );
     });
   });
 }

@@ -9,4 +9,6 @@ plugins:
       sort_functions_alphabetically: true
       sort_functions_by_scope: true
       sort_named_parameters: true
+      use_clock: true
+      use_file_system: true
       valid_json_serializable: true

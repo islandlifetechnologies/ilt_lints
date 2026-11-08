@@ -18,6 +18,7 @@ build/
 .svn/
 migrate_working_dir/
 pubspec.lock
+pubspec_overrides.yaml
 .metadata
 
 # IntelliJ related

@@ -24,9 +24,7 @@ class ExportLibraryTest extends AnalysisRuleTest {
   }
 
   Future<void> test_customOptionsWithIncludeAndExcludeListsExcludeWins() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - export_library
@@ -39,8 +37,7 @@ export_library:
     exclude:
       - feature/internal/**/*.dart
       - extra/secret.dart
-''',
-    );
+''');
 
     newFile('$testPackageLibPath/feature/public_a.dart', 'class PublicA {}');
     newFile(
@@ -67,14 +64,11 @@ export 'feature/public_a.dart';
     expect(diagnostics, hasLength(1));
 
     final fixed = await _applyFixAtPath(exporterPath, original);
-    expect(
-      fixed,
-      '''
+    expect(fixed, '''
 export 'extra/public_c.dart';
 export 'feature/public_a.dart';
 export 'feature/sub/public_b.dart';
-''',
-    );
+''');
   }
 
   Future<void> test_defaultExcludesGAndFreezedFiles() async {
@@ -105,9 +99,7 @@ export 'src/nested/beta.dart';
       '''
 export 'src/alpha.dart';
 ''',
-      [
-        lint(0, 25),
-      ],
+      [lint(0, 25)],
     );
   }
 
@@ -173,9 +165,7 @@ export 'src/alpha.dart';
   }
 
   Future<void> test_multipleExportersConfigured() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - export_library
@@ -189,8 +179,7 @@ export_library:
       - second/**/*.dart
     exclude:
       - second/private_*.dart
-''',
-    );
+''');
 
     newFile('$testPackageLibPath/first/a.dart', 'class A {}');
     newFile('$testPackageLibPath/second/b.dart', 'class B {}');
@@ -228,11 +217,9 @@ export 'second/b.dart';
   Future<String> _applyFixAtPath(String filePath, String content) async {
     newFile(filePath, content);
     final unitResult = await resolveFile(filePath);
-    final libraryResult =
-        await unitResult.session.getResolvedLibraryByElement(
-              unitResult.libraryElement,
-            )
-            as ResolvedLibraryResult;
+    final libraryResult = await unitResult.session.getResolvedLibraryByElement(
+      unitResult.libraryElement,
+    ) as ResolvedLibraryResult;
     final diagnostics = unitResult.diagnostics
         .where((d) => d.diagnosticCode == ExportLibrary.code)
         .toList();

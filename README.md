@@ -12,10 +12,14 @@ plugins:
     version: ^2.0.0
     diagnostics:
       export_library: true
+      prefer_const_constructors: true
+      prefer_primary_constructors: true
       sort_fields: true
       sort_functions_by_scope: true
       sort_functions_alphabetically: true
       sort_named_parameters: true
+      use_clock: true
+      use_file_system: true
       valid_json_serializable: true
 
 # Optional; configuration values for the export_library rule
@@ -86,6 +90,23 @@ export_library:
 
 Includes an automated quick fix (`Export missing library files`).
 
+### `prefer_const_constructors`
+
+Detects classes whose constructor (primary constructor or generative constructor) can be marked `const` without any other changes and flags them if not already marked `const`.
+
+Includes an automated quick fix (`Add const modifier to constructor`) that adds `const` to the primary constructor (`class const Foo(...)`) or generative constructor (`const Foo(...);`).
+
+### `prefer_primary_constructors`
+
+Detects classes that do not use a Dart primary constructor (`class Foo(...)` or `class const Foo(...)`).
+
+Includes an automated quick fix (`Convert to primary constructor`) that:
+
+- Adds `()` to classes with no constructors (`class Foo()`).
+- Moves generative constructors to the class header (`class Foo(...)`, `class const Foo(...)`, `class Foo.named(...)`).
+- Merges `this.<field>` parameters with their corresponding instance field declarations into declaring parameters (`final Type field` / `var Type field`), preserving annotations, default values, and doc comments.
+- Converts any constructor initializer list or non-empty constructor body into a `this : ...;` / `this { ... }` primary constructor body inside the class.
+
 ### `sort_fields`
 
 Ensures fields within a type body (classes, mixins, enums, extensions, and extension types) appear before all methods, getters, setters, and operators (ignoring constructors), grouped by scope in the following order and sorted alphabetically within each group:
@@ -153,9 +174,27 @@ sort_named_parameters:
 
 Includes an automated quick fix (`Sort named parameters alphabetically`).
 
+### `use_clock`
+
+Detects usages of `DateTime.now()` and `DateTime.now` tear-offs in files inside the `lib/` folder (ignoring files in `test/` and other non-`lib/` directories) and requires using `clock.now()` / `clock.now` from `package:clock/clock.dart` instead so that time can be mocked in tests.
+
+Includes an automated quick fix (`Replace with clock.now`) that replaces `DateTime.now()` with `clock.now()` (or `DateTime.now` with `clock.now`) and automatically adds `import 'package:clock/clock.dart';` if not already imported.
+
+### `use_file_system`
+
+Detects direct usages of `dart:io` `File`, `Directory`, `FileSystemEntity`, and `Link` in files inside the `lib/` folder (ignoring files in `test/` and other non-`lib/` directories) and requires using `FileSystem` from `package:file/file.dart` so file system operations can be mocked in tests.
+
+Includes an automated quick fix (`Use FileSystem from package:file`) that:
+
+- When `package:io_ext/...` is imported, uses `fs` to obtain the zone `FileSystem` (`fs.file(...)`, `fs.directory(...)`, etc.).
+- When inside a class without `io_ext`, adds a `@visibleForTesting` `_fs` `FileSystem` parameter/field defaulting to `const LocalFileSystem()` and rewrites `File`/`Directory` calls to use `_fs`.
+- When inside a top-level function without `io_ext`, adds a named `@visibleForTesting FileSystem fs = const LocalFileSystem()` parameter and rewrites `File`/`Directory` calls to use `fs`.
+- Automatically updates `dart:io` and adds `package:file/file.dart`, `package:file/local.dart`, and `package:meta/meta.dart` imports as needed.
+
 ### `valid_json_serializable`
 
 Ensures classes annotated with `@JsonSerializable` have valid generated helper call methods:
+
 1. If `createFactory` is `true` (or not explicitly `false`), ensures a factory constructor or static function named `fromJson` exists and calls the generated `_$<ClassName>FromJson` function.
 2. If `createToJson` is `true` (or not explicitly `false`), ensures a `toJson` instance method exists and calls the generated `_$<ClassName>ToJson` function.
 

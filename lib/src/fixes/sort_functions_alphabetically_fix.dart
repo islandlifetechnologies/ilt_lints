@@ -139,4 +139,3 @@ class _SortableMethod {
   final SourceRange range;
   final String text;
 }
-

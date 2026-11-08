@@ -11,16 +11,16 @@ import 'sort_functions_by_scope.dart';
 /// alphabetically within each [FunctionScope].
 class SortFunctionsAlphabetically extends AnalysisRule {
   SortFunctionsAlphabetically()
-      : super(
-          description:
-              'Sort functions, getters, and setters alphabetically within each scope.',
-          name: code.lowerCaseName,
-        );
+    : super(
+        description: 'Sort functions, getters, and setters alphabetically within each scope.',
+        name: code.lowerCaseName,
+      );
 
   static const code = LintCode(
     'sort_functions_alphabetically',
     "Sort {0} alphabetically ('{1}' before '{2}').",
-    correctionMessage: 'Try sorting functions alphabetically within their scope.',
+    correctionMessage:
+        'Try sorting functions alphabetically within their scope.',
   );
 
   @override
@@ -75,4 +75,3 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 }
-

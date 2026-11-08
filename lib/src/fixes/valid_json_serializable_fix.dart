@@ -78,10 +78,7 @@ class ValidJsonSerializableFix extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       for (final entry in replacements.entries) {
-        builder.addSimpleReplacement(
-          range.node(entry.key),
-          entry.value,
-        );
+        builder.addSimpleReplacement(range.node(entry.key), entry.value);
       }
 
       if (additions.isNotEmpty) {

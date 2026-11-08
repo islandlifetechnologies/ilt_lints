@@ -120,10 +120,7 @@ mixin MyMixin {
   int bar = 0;
 }
 ''',
-      [
-        lint(91, 5),
-        lint(139, 3),
-      ],
+      [lint(91, 5), lint(139, 3)],
     );
   }
 
@@ -150,12 +147,7 @@ class Example4 {
   final int aField = 1;
 }
 ''',
-      [
-        lint(47, 6),
-        lint(114, 6),
-        lint(181, 6),
-        lint(272, 6),
-      ],
+      [lint(47, 6), lint(114, 6), lint(181, 6), lint(272, 6)],
     );
   }
 
@@ -183,7 +175,7 @@ class Example {
   }
 
   Future<void>
-      test_finalFirstDefaultTrueFlagsFinalAfterNonFinalInSameScope() async {
+  test_finalFirstDefaultTrueFlagsFinalAfterNonFinalInSameScope() async {
     await assertDiagnostics(
       r'''
 class Example {
@@ -194,10 +186,7 @@ class Example {
   final int betaInstance = 2;
 }
 ''',
-      [
-        lint(65, 10),
-        lint(119, 12),
-      ],
+      [lint(65, 10), lint(119, 12)],
     );
   }
 
@@ -220,17 +209,14 @@ class Example {
   }
 
   Future<void> test_finalFirstFalseFlagsUnsortedAndFixesAlphabetically() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - sort_fields
 
 sort_fields:
   final_first: false
-''',
-    );
+''');
 
     const original = r'''
 class Example {
@@ -253,17 +239,14 @@ class Example {
   }
 
   Future<void> test_finalFirstFalseSortsPurelyAlphabeticallyValid() async {
-    newAnalysisOptionsYamlFile(
-      testPackageRootPath,
-      '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 linter:
   rules:
     - sort_fields
 
 sort_fields:
   final_first: false
-''',
-    );
+''');
 
     await assertNoDiagnostics(r'''
 class Example {
@@ -275,7 +258,7 @@ class Example {
   }
 
   Future<void>
-      test_fixMovesFieldsAboveMethodsAndSortsByScopeAndAlphabetically() async {
+  test_fixMovesFieldsAboveMethodsAndSortsByScopeAndAlphabetically() async {
     const original = r'''
 class Example {
   Example(this.alphaField, this.betaField);
@@ -346,9 +329,7 @@ class Example {
   static int _privStatic = 2;
 }
 ''',
-      [
-        lint(55, 11),
-      ],
+      [lint(55, 11)],
     );
   }
 
@@ -360,9 +341,7 @@ class Example {
   static const int _privConst = 2;
 }
 ''',
-      [
-        lint(63, 10),
-      ],
+      [lint(63, 10)],
     );
   }
 
@@ -374,9 +353,7 @@ class Example {
   final int pubField = 2;
 }
 ''',
-      [
-        lint(56, 8),
-      ],
+      [lint(56, 8)],
     );
   }
 
@@ -388,9 +365,7 @@ class Example {
   static int pubStatic = 2;
 }
 ''',
-      [
-        lint(59, 9),
-      ],
+      [lint(59, 9)],
     );
   }
 
@@ -402,9 +377,7 @@ class Example {
   static const int pubConst = 2;
 }
 ''',
-      [
-        lint(70, 8),
-      ],
+      [lint(70, 8)],
     );
   }
 

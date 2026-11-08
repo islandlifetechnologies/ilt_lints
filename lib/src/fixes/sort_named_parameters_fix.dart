@@ -19,8 +19,8 @@ class SortNamedParametersFix extends ResolvedCorrectionProducer {
     required super.context,
     Iterable<String> ignore = const [],
     bool requiredFirst = false,
-  })  : _extraIgnore = Set<String>.unmodifiable(ignore),
-        _extraRequiredFirst = requiredFirst;
+  }) : _extraIgnore = Set<String>.unmodifiable(ignore),
+       _extraRequiredFirst = requiredFirst;
 
   static const _fixKind = FixKind(
     'dart.fix.sortNamedParameters',
@@ -48,16 +48,14 @@ class SortNamedParametersFix extends ResolvedCorrectionProducer {
     }
 
     final analysisContext = unitResult.session.analysisContext;
-    final currentFile =
-        unitResult.session.resourceProvider.getFile(unitResult.path);
+    final currentFile = unitResult.session.resourceProvider.getFile(
+      unitResult.path,
+    );
     final fileOptions = SortNamedParameters.readOptions(
       currentFile,
       optionsFile: analysisContext.contextRoot.optionsFile,
     );
-    final ignoredNames = {
-      ..._extraIgnore,
-      ...fileOptions.ignore,
-    };
+    final ignoredNames = {..._extraIgnore, ...fileOptions.ignore};
     final requiredFirst = _extraRequiredFirst || fileOptions.requiredFirst;
 
     final entries = <_SortableNamedItem>[];

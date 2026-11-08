@@ -22,16 +22,24 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:yaml/yaml.dart';
 
 import 'fixes/export_library_fix.dart';
+import 'fixes/prefer_const_constructors_fix.dart';
+import 'fixes/prefer_primary_constructors_fix.dart';
 import 'fixes/sort_fields_fix.dart';
 import 'fixes/sort_functions_alphabetically_fix.dart';
 import 'fixes/sort_functions_by_scope_fix.dart';
 import 'fixes/sort_named_parameters_fix.dart';
+import 'fixes/use_clock_fix.dart';
+import 'fixes/use_file_system_fix.dart';
 import 'fixes/valid_json_serializable_fix.dart';
 import 'rules/export_library.dart';
+import 'rules/prefer_const_constructors.dart';
+import 'rules/prefer_primary_constructors.dart';
 import 'rules/sort_fields.dart';
 import 'rules/sort_functions_alphabetically.dart';
 import 'rules/sort_functions_by_scope.dart';
 import 'rules/sort_named_parameters.dart';
+import 'rules/use_clock.dart';
+import 'rules/use_file_system.dart';
 import 'rules/valid_json_serializable.dart';
 
 /// Runs the `ilt_lints` CLI fix tool with [args].
@@ -47,7 +55,7 @@ Future<int> runFixCli(
   final stderrSink = err ?? io.stderr;
   final provider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
   final pathContext = provider.pathContext;
-  final cwd = workingDirectory ?? io.Directory.current.path;
+  final cwd = workingDirectory ?? pathContext.current;
 
   var dryRun = false;
   var showHelp = false;
@@ -187,6 +195,16 @@ class FixRunner {
       ruleFactory: ExportLibrary.new,
     ),
     _RuleFixEntry(
+      fixGenerator: PreferConstConstructorsFix.new,
+      name: PreferConstConstructors.code.lowerCaseName,
+      ruleFactory: PreferConstConstructors.new,
+    ),
+    _RuleFixEntry(
+      fixGenerator: PreferPrimaryConstructorsFix.new,
+      name: PreferPrimaryConstructors.code.lowerCaseName,
+      ruleFactory: PreferPrimaryConstructors.new,
+    ),
+    _RuleFixEntry(
       fixGenerator: SortFieldsFix.new,
       name: SortFields.code.lowerCaseName,
       ruleFactory: SortFields.new,
@@ -205,6 +223,16 @@ class FixRunner {
       fixGenerator: SortNamedParametersFix.new,
       name: SortNamedParameters.code.lowerCaseName,
       ruleFactory: SortNamedParameters.new,
+    ),
+    _RuleFixEntry(
+      fixGenerator: UseClockFix.new,
+      name: UseClock.code.lowerCaseName,
+      ruleFactory: UseClock.new,
+    ),
+    _RuleFixEntry(
+      fixGenerator: UseFileSystemFix.new,
+      name: UseFileSystem.code.lowerCaseName,
+      ruleFactory: UseFileSystem.new,
     ),
     _RuleFixEntry(
       fixGenerator: ValidJsonSerializableFix.new,
