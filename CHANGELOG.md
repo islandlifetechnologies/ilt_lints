@@ -1,3 +1,7 @@
+## 2.0.0
+
+- Pulled last beta version into release.
+
 ## 2.0.0-beta6
 
 - Added `prefer_const_constructors` lint rule to encourage marking constructors `const` when a class can be `const` without other changes.
