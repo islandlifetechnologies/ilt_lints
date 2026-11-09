@@ -42,6 +42,21 @@ class User {
     );
   }
 
+  Future<void> test_generatedPartOfFile_notReported() async {
+    newFile('$testPackageLibPath/main.dart', '''
+part 'test.dart';
+''');
+    await assertNoDiagnostics(r'''
+part of 'main.dart';
+
+class User {
+  final String name;
+
+  User(this.name);
+}
+''');
+  }
+
   Future<void> test_quickFixClassWithConstAndNamedParameters() async {
     const original = r'''
 class BaseWidget {

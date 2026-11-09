@@ -41,6 +41,10 @@ class PreferPrimaryConstructors extends AnalysisRule {
   static PreferPrimaryConstructorsAnalysis? analyzeClass(
     ClassDeclaration node,
   ) {
+    final unit = node.thisOrAncestorOfType<CompilationUnit>();
+    if (unit != null && unit.directives.any((d) => d is PartOfDirective)) {
+      return null;
+    }
     if (node.namePart is PrimaryConstructorDeclaration) {
       return null;
     }

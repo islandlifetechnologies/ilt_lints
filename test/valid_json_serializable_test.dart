@@ -136,9 +136,17 @@ class JsonSerializable {
 
 @JsonSerializable()
 class User {
-  final String name;
+  final _Name name;
 
   User(this.name);
+}
+
+@JsonSerializable()
+class _Name {
+  final String first;
+  final String last;
+
+  _Name(this.first, this.last);
 }
 ''';
 
@@ -151,7 +159,17 @@ class User {
     );
     expect(
       fixed,
+      contains(
+        r'factory _Name.fromJson(Map<String, dynamic> json) => _$NameFromJson(json);',
+      ),
+    );
+    expect(
+      fixed,
       contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'),
+    );
+    expect(
+      fixed,
+      contains(r'Map<String, dynamic> toJson() => _$NameToJson(this);'),
     );
   }
 
@@ -220,7 +238,7 @@ class JsonSerializable {
 
 @JsonSerializable()
 class User {
-  final String name;
+  final _Name name;
 
   User(this.name);
 
@@ -229,8 +247,27 @@ class User {
   Map<String, dynamic> toJson() => _$UserToJson(this);
 }
 
-User _$UserFromJson(Map<String, dynamic> json) => User(json['name'] as String);
+@JsonSerializable()
+class _Name {
+  final String first;
+  final String last;
+
+  _Name(this.first, this.last);
+
+  factory _Name.fromJson(Map<String, dynamic> json) => _$NameFromJson(json);
+
+  Map<String, dynamic> toJson() => _$NameToJson(this);
+}
+
+User _$UserFromJson(Map<String, dynamic> json) =>
+    User(_$NameFromJson(json['name'] as Map<String, dynamic>));
 Map<String, dynamic> _$UserToJson(User instance) => {'name': instance.name};
+_Name _$NameFromJson(Map<String, dynamic> json) =>
+    _Name(json['first'] as String, json['last'] as String);
+Map<String, dynamic> _$NameToJson(_Name instance) => {
+  'first': instance.first,
+  'last': instance.last,
+};
 ''');
   }
 
@@ -267,17 +304,18 @@ Map<String, dynamic> _$UserToJson(User instance) => {'name': instance.name};
         .toList();
     expect(diagnostics, isNotEmpty);
 
-    final diagnostic = diagnostics.first;
-    final context = CorrectionProducerContext.createResolved(
-      diagnostic: diagnostic,
-      libraryResult: libraryResult,
-      selectionLength: diagnostic.length,
-      selectionOffset: diagnostic.offset,
-      unitResult: unitResult,
-    );
-    final producer = ValidJsonSerializableFix(context: context);
     final builder = ChangeBuilder(session: unitResult.session);
-    await producer.compute(builder);
+    for (final diagnostic in diagnostics) {
+      final context = CorrectionProducerContext.createResolved(
+        diagnostic: diagnostic,
+        libraryResult: libraryResult,
+        selectionLength: diagnostic.length,
+        selectionOffset: diagnostic.offset,
+        unitResult: unitResult,
+      );
+      final producer = ValidJsonSerializableFix(context: context);
+      await producer.compute(builder);
+    }
     final fileEdits = builder.sourceChange.edits;
     expect(fileEdits, hasLength(1));
     return SourceEdit.applySequence(content, fileEdits.first.edits);

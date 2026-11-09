@@ -1,3 +1,8 @@
+## 2.0.1
+
+- Fix for private classes with nested classes that have @JsonSerializable.
+- Fix for skipping over the generated class files for for `prefer_const_constructors` and `prefer_primary_constructors` lint rules.
+
 ## 2.0.0
 
 - Pulled last beta version into release.

@@ -42,6 +42,10 @@ class PreferConstConstructors extends AnalysisRule {
   /// has a primary constructor or generative constructor(s) that can be marked
   /// `const` without any other changes, or `null` otherwise.
   static PreferConstConstructorsAnalysis? analyzeClass(ClassDeclaration node) {
+    final unit = node.thisOrAncestorOfType<CompilationUnit>();
+    if (unit != null && unit.directives.any((d) => d is PartOfDirective)) {
+      return null;
+    }
     if (node.mixinKeyword != null) {
       return null;
     }

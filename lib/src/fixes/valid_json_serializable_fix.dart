@@ -49,11 +49,11 @@ class ValidJsonSerializableFix extends ResolvedCorrectionProducer {
     final memberIndent = '$classIndent  ';
 
     final fromJsonDeclaration = analysis.hasPrimaryConstructor
-        ? 'factory fromJson(Map<String, dynamic> json) => _\$${className}FromJson(json);'
-        : 'factory $className.fromJson(Map<String, dynamic> json) => _\$${className}FromJson(json);';
+        ? 'factory fromJson(Map<String, dynamic> json) => ${analysis.fromJsonFunctionName}(json);'
+        : 'factory $className.fromJson(Map<String, dynamic> json) => ${analysis.fromJsonFunctionName}(json);';
 
     final toJsonDeclaration =
-        'Map<String, dynamic> toJson() => _\$${className}ToJson(this);';
+        'Map<String, dynamic> toJson() => ${analysis.toJsonFunctionName}(this);';
 
     final replacements = <ClassMember, String>{};
     final additions = <String>[];

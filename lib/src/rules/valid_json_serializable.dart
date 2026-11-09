@@ -14,9 +14,11 @@ class ValidJsonSerializableAnalysis {
     required this.classNode,
     required this.existingFromJson,
     required this.existingToJson,
+    required this.fromJsonFunctionName,
     required this.hasPrimaryConstructor,
     required this.needsFromJson,
     required this.needsToJson,
+    required this.toJsonFunctionName,
   });
 
   final String className;
@@ -24,9 +26,11 @@ class ValidJsonSerializableAnalysis {
   final ClassDeclaration classNode;
   final ClassMember? existingFromJson;
   final MethodDeclaration? existingToJson;
+  final String fromJsonFunctionName;
   final bool hasPrimaryConstructor;
   final bool needsFromJson;
   final bool needsToJson;
+  final String toJsonFunctionName;
 
   bool get hasIssues => needsFromJson || needsToJson;
 }
@@ -90,7 +94,8 @@ class ValidJsonSerializable extends AnalysisRule {
       }
     }
 
-    final fromJsonGenerated = '_\$${className}FromJson';
+    final generatedClassName = className.replaceFirst(RegExp('^_+'), '');
+    final fromJsonGenerated = '_\$${generatedClassName}FromJson';
     var hasValidFromJson = false;
     if (existingFromJson is ConstructorDeclaration) {
       hasValidFromJson =
@@ -102,7 +107,7 @@ class ValidJsonSerializable extends AnalysisRule {
           _callsFunction(existingFromJson.body, fromJsonGenerated);
     }
 
-    final toJsonGenerated = '_\$${className}ToJson';
+    final toJsonGenerated = '_\$${generatedClassName}ToJson';
     final hasValidToJson =
         existingToJson != null &&
         !existingToJson.isStatic &&
@@ -114,9 +119,11 @@ class ValidJsonSerializable extends AnalysisRule {
       classNode: node,
       existingFromJson: existingFromJson,
       existingToJson: existingToJson,
+      fromJsonFunctionName: fromJsonGenerated,
       hasPrimaryConstructor: hasPrimaryConstructor,
       needsFromJson: createFactory && !hasValidFromJson,
       needsToJson: createToJson && !hasValidToJson,
+      toJsonFunctionName: toJsonGenerated,
     );
   }
 
@@ -246,11 +253,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     final problems = <String>[];
     if (analysis.needsFromJson) {
       problems.add(
-        "missing valid 'fromJson' calling '_\$${className}FromJson'",
+        "missing valid 'fromJson' calling '${analysis.fromJsonFunctionName}'",
       );
     }
     if (analysis.needsToJson) {
-      problems.add("missing valid 'toJson' calling '_\$${className}ToJson'");
+      problems.add(
+        "missing valid 'toJson' calling '${analysis.toJsonFunctionName}'",
+      );
     }
 
     rule.reportAtToken(

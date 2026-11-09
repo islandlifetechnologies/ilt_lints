@@ -130,6 +130,24 @@ class Sub() extends Base {
 ''');
   }
 
+  Future<void> test_generatedPartOfFile_notReported() async {
+    newFile('$testPackageLibPath/main.dart', '''
+part 'test.dart';
+''');
+    await assertNoDiagnostics('''
+part of 'main.dart';
+
+class Point {
+  Point(this.x, this.y);
+
+  final int x;
+  final int y;
+}
+
+class User(final String name) {}
+''');
+  }
+
   Future<void> test_primaryConstructor_canBeConst() async {
     const initial = '''
 class User(final String name, {final int age = 0}) {}
