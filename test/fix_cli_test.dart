@@ -275,6 +275,7 @@ class User {
       expect(exitCode, 0);
       expect(out.toString(), contains('valid_json_serializable (1 fix)'));
       final content = dartFile.readAsStringSync();
+      expect(content, contains("part 'model.g.dart';"));
       expect(
         content,
         contains(

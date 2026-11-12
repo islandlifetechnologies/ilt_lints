@@ -1,7 +1,7 @@
 name: ilt_lints
 description: Lints for ILT repos
 repository: https://github.com/islandlifetechnologies/ilt_lints
-version: 2.0.1
+version: 2.0.2
 
 environment:
   sdk: ^3.13.0

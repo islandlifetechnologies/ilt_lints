@@ -5,6 +5,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:path/path.dart' as p;
 
 /// Result of analyzing a [ClassDeclaration] for [ValidJsonSerializable].
 class ValidJsonSerializableAnalysis {
@@ -14,9 +15,11 @@ class ValidJsonSerializableAnalysis {
     required this.classNode,
     required this.existingFromJson,
     required this.existingToJson,
+    this.expectedPartUri,
     required this.fromJsonFunctionName,
     required this.hasPrimaryConstructor,
     required this.needsFromJson,
+    this.needsPartDirective = false,
     required this.needsToJson,
     required this.toJsonFunctionName,
   });
@@ -26,36 +29,42 @@ class ValidJsonSerializableAnalysis {
   final ClassDeclaration classNode;
   final ClassMember? existingFromJson;
   final MethodDeclaration? existingToJson;
+  final String? expectedPartUri;
   final String fromJsonFunctionName;
   final bool hasPrimaryConstructor;
   final bool needsFromJson;
+  final bool needsPartDirective;
   final bool needsToJson;
   final String toJsonFunctionName;
 
-  bool get hasIssues => needsFromJson || needsToJson;
+  bool get hasIssues => needsPartDirective || needsFromJson || needsToJson;
 }
 
 /// A lint rule that ensures classes annotated with `@JsonSerializable` define:
-/// 1. A `fromJson` factory (or static function) calling `_$<ClassName>FromJson`
+/// 1. A `part '<filename>.g.dart';` directive in the containing file.
+/// 2. A `fromJson` factory (or static function) calling `_$<ClassName>FromJson`
 ///    when `createFactory: true` (or defaulted to true by JsonSerializable).
-/// 2. A `toJson` method calling `_$<ClassName>ToJson` when `createToJson: true`
+/// 3. A `toJson` method calling `_$<ClassName>ToJson` when `createToJson: true`
 ///    (or defaulted to true by JsonSerializable).
 class ValidJsonSerializable extends AnalysisRule {
   ValidJsonSerializable()
     : super(
-        description: 'Ensure @JsonSerializable classes define valid fromJson and toJson methods calling the generated functions.',
+        description: 'Ensure @JsonSerializable classes include the generated part file and define valid fromJson and toJson methods calling the generated functions.',
         name: code.lowerCaseName,
       );
 
   static const code = LintCode(
     'valid_json_serializable',
     'Invalid @JsonSerializable class {0}: {1}.',
-    correctionMessage: 'Try adding or updating fromJson and toJson to call the generated functions.',
+    correctionMessage: 'Try adding the generated part directive and adding or updating fromJson and toJson to call the generated functions.',
   );
 
   /// Analyzes [node] and returns a [ValidJsonSerializableAnalysis] if [node] is
   /// annotated with `@JsonSerializable`, or `null` otherwise.
-  static ValidJsonSerializableAnalysis? analyzeClass(ClassDeclaration node) {
+  static ValidJsonSerializableAnalysis? analyzeClass(
+    ClassDeclaration node, {
+    String? filePath,
+  }) {
     final config = _extractJsonSerializableConfig(node.metadata);
     if (config == null) {
       return null;
@@ -65,6 +74,21 @@ class ValidJsonSerializable extends AnalysisRule {
     final className = classNameToken.lexeme;
     final hasPrimaryConstructor =
         node.namePart is PrimaryConstructorDeclaration;
+
+    final unit = node.thisOrAncestorOfType<CompilationUnit>();
+    final resolvedPath =
+        filePath ??
+        unit?.declaredFragment?.source.fullName ??
+        unit?.declaredFragment?.source.shortName;
+    final expectedPartUri = _expectedPartUri(resolvedPath);
+    final hasValidPartDirective =
+        expectedPartUri == null ||
+        (unit != null &&
+            unit.directives.whereType<PartDirective>().any(
+              (d) => d.uri.stringValue == expectedPartUri,
+            ));
+    final needsPartDirective =
+        (createFactory || createToJson) && !hasValidPartDirective;
 
     final body = node.body;
     final members = body is BlockClassBody
@@ -119,9 +143,11 @@ class ValidJsonSerializable extends AnalysisRule {
       classNode: node,
       existingFromJson: existingFromJson,
       existingToJson: existingToJson,
+      expectedPartUri: expectedPartUri,
       fromJsonFunctionName: fromJsonGenerated,
       hasPrimaryConstructor: hasPrimaryConstructor,
       needsFromJson: createFactory && !hasValidFromJson,
+      needsPartDirective: needsPartDirective,
       needsToJson: createToJson && !hasValidToJson,
       toJsonFunctionName: toJsonGenerated,
     );
@@ -131,6 +157,17 @@ class ValidJsonSerializable extends AnalysisRule {
     final finder = _FunctionCallFinder(functionName);
     body.accept(finder);
     return finder.found;
+  }
+
+  static String? _expectedPartUri(String? filePath) {
+    if (filePath == null || filePath.isEmpty) {
+      return null;
+    }
+    final baseName = p.basenameWithoutExtension(filePath);
+    if (baseName.isEmpty) {
+      return null;
+    }
+    return '$baseName.g.dart';
   }
 
   static (bool, bool)? _extractJsonSerializableConfig(
@@ -205,7 +242,9 @@ class ValidJsonSerializable extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    final visitor = _Visitor(this);
+    final filePath =
+        context.currentUnit?.file.path ?? context.definingUnit.file.path;
+    final visitor = _Visitor(this, filePath: filePath);
     registry.addClassDeclaration(this, visitor);
   }
 }
@@ -238,19 +277,26 @@ class _FunctionCallFinder extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule);
+  _Visitor(this.rule, {required this.filePath});
 
+  final String filePath;
   final ValidJsonSerializable rule;
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    final analysis = ValidJsonSerializable.analyzeClass(node);
+    final analysis = ValidJsonSerializable.analyzeClass(
+      node,
+      filePath: filePath,
+    );
     if (analysis == null || !analysis.hasIssues) {
       return;
     }
 
     final className = analysis.className;
     final problems = <String>[];
+    if (analysis.needsPartDirective && analysis.expectedPartUri != null) {
+      problems.add("missing \"part '${analysis.expectedPartUri}';\"");
+    }
     if (analysis.needsFromJson) {
       problems.add(
         "missing valid 'fromJson' calling '${analysis.fromJsonFunctionName}'",

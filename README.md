@@ -193,9 +193,10 @@ Includes an automated quick fix (`Use FileSystem from package:file`) that:
 
 ### `valid_json_serializable`
 
-Ensures classes annotated with `@JsonSerializable` have valid generated helper call methods:
+Ensures classes annotated with `@JsonSerializable` have the generated `part` directive and valid generated helper call methods:
 
-1. If `createFactory` is `true` (or not explicitly `false`), ensures a factory constructor or static function named `fromJson` exists and calls the generated `_$<ClassName>FromJson` function.
-2. If `createToJson` is `true` (or not explicitly `false`), ensures a `toJson` instance method exists and calls the generated `_$<ClassName>ToJson` function.
+1. Ensures `part '<filename>.g.dart';` exists in the file when `createFactory` or `createToJson` is enabled.
+2. If `createFactory` is `true` (or not explicitly `false`), ensures a factory constructor or static function named `fromJson` exists and calls the generated `_$<ClassName>FromJson` function.
+3. If `createToJson` is `true` (or not explicitly `false`), ensures a `toJson` instance method exists and calls the generated `_$<ClassName>ToJson` function.
 
-Includes an automated quick fix (`Add valid fromJson and/or toJson`) that generates factory constructors (using the simplified `factory fromJson(...)` form when a primary constructor is present) and `toJson` methods. Runs with `dart run ilt_lints:fix`.
+Includes an automated quick fix (`Add valid fromJson and/or toJson`) that adds the `part '<filename>.g.dart';` directive and generates `factory <ClassName>.fromJson(...)` and `toJson()` methods (including converting an empty `;` class body to `{ ... }`). Runs with `dart run ilt_lints:fix`.

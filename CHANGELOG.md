@@ -1,3 +1,7 @@
+## 2.0.2
+
+- Updated the `valid_json_serializable` lint to check for the "part" declaration as well as linting on a class with an empty body. Both have quick fixes available.
+
 ## 2.0.1
 
 - Fix for private classes with nested classes that have @JsonSerializable.

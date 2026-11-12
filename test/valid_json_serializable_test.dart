@@ -21,6 +21,7 @@ class ValidJsonSerializableTest extends AnalysisRuleTest {
   void setUp() {
     rule = ValidJsonSerializable();
     super.setUp();
+    newFile('$testPackageLibPath/test.g.dart', "part of 'test.dart';\n");
   }
 
   Future<void> test_bothFalseNoDiagnostics() async {
@@ -56,6 +57,8 @@ class User {
     );
 
     newFile(testFile.path, r'''
+part 'test.g.dart';
+
 class JsonSerializable {
   const JsonSerializable({bool createFactory = true, bool createToJson = true});
 }
@@ -92,6 +95,8 @@ class User {
     );
 
     newFile(testFile.path, r'''
+part 'test.g.dart';
+
 class JsonSerializable {
   const JsonSerializable({bool createFactory = true, bool createToJson = true});
 }
@@ -110,6 +115,32 @@ User _$UserFromJson(Map<String, dynamic> json) => User(json['name'] as String);
     await assertNoDiagnosticsInFile(testFile.path);
   }
 
+  Future<void> test_emptyClassBodyFlagsDiagnosticAndQuickFixes() async {
+    newFile('$testPackageLibPath/json_annotation.dart', r'''
+class JsonSerializable {
+  const JsonSerializable();
+}
+''');
+
+    final userFilePath = '$testPackageLibPath/user.dart';
+    const original = r'''
+@JsonSerializable()
+class User({required final String firstName, required final String lastName});
+''';
+
+    final fixed = await _applyFix(original, filePath: userFilePath);
+    expect(fixed, r'''
+part 'user.g.dart';
+
+@JsonSerializable()
+class User({required final String firstName, required final String lastName}) {
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserToJson(this);
+}
+''');
+  }
+
   Future<void> test_missingFromJsonAndToJsonFlagsDiagnostic() async {
     await assertDiagnostics(
       r'''
@@ -126,6 +157,32 @@ class User {
 ''',
       [lint(82, 4)],
     );
+  }
+
+  Future<void> test_missingPartDirectiveFlagsDiagnosticAndQuickFixes() async {
+    const original = r'''
+class JsonSerializable {
+  const JsonSerializable();
+}
+
+@JsonSerializable()
+class User {
+  final String name;
+
+  User(this.name);
+
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserToJson(this);
+}
+
+User _$UserFromJson(Map<String, dynamic> json) => User(json['name'] as String);
+Map<String, dynamic> _$UserToJson(User instance) => {'name': instance.name};
+''';
+
+    await assertDiagnostics(original, [lint(82, 4)]);
+    final fixed = await _applyFix(original);
+    expect(fixed, startsWith("part 'test.g.dart';\n\n"));
   }
 
   Future<void> test_quickFixAddsFactoryAndToJson() async {
@@ -151,6 +208,7 @@ class _Name {
 ''';
 
     final fixed = await _applyFix(original);
+    expect(RegExp("part 'test.g.dart';").allMatches(fixed), hasLength(1));
     expect(
       fixed,
       contains(
@@ -173,6 +231,31 @@ class _Name {
     );
   }
 
+  Future<void> test_quickFixForPrimaryConstructor() async {
+    const original = r'''
+class JsonSerializable {
+  const JsonSerializable();
+}
+
+@JsonSerializable()
+class User(final String name) {
+}
+''';
+
+    final fixed = await _applyFix(original);
+    expect(fixed, contains("part 'test.g.dart';"));
+    expect(
+      fixed,
+      contains(
+        r'factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);',
+      ),
+    );
+    expect(
+      fixed,
+      contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'),
+    );
+  }
+
   Future<void> test_quickFixUpdatesInvalidFromJsonOrToJson() async {
     const original = r'''
 class JsonSerializable {
@@ -192,6 +275,7 @@ class User {
 ''';
 
     final fixed = await _applyFix(original);
+    expect(fixed, contains("part 'test.g.dart';"));
     expect(
       fixed,
       contains(
@@ -205,33 +289,10 @@ class User {
     expect(fixed, isNot(contains("User('')")));
   }
 
-  Future<void> test_quickFixUsesSimplifiedFactoryForPrimaryConstructor() async {
-    const original = r'''
-class JsonSerializable {
-  const JsonSerializable();
-}
-
-@JsonSerializable()
-class User(final String name) {
-}
-''';
-
-    final fixed = await _applyFix(original);
-    expect(
-      fixed,
-      contains(
-        r'factory fromJson(Map<String, dynamic> json) => _$UserFromJson(json);',
-      ),
-    );
-    expect(fixed, isNot(contains('factory User.fromJson')));
-    expect(
-      fixed,
-      contains(r'Map<String, dynamic> toJson() => _$UserToJson(this);'),
-    );
-  }
-
   Future<void> test_validClassWithFactoryAndToJson() async {
     await assertNoDiagnostics(r'''
+part 'test.g.dart';
+
 class JsonSerializable {
   const JsonSerializable();
 }
@@ -273,6 +334,8 @@ Map<String, dynamic> _$NameToJson(_Name instance) => {
 
   Future<void> test_validClassWithStaticFromJson() async {
     await assertNoDiagnostics(r'''
+part 'test.g.dart';
+
 class JsonSerializable {
   const JsonSerializable();
 }
@@ -293,9 +356,10 @@ Map<String, dynamic> _$UserToJson(User instance) => {'name': instance.name};
 ''');
   }
 
-  Future<String> _applyFix(String content) async {
-    newFile(testFile.path, content);
-    final unitResult = await resolveFile(testFile.path);
+  Future<String> _applyFix(String content, {String? filePath}) async {
+    final targetPath = filePath ?? testFile.path;
+    newFile(targetPath, content);
+    final unitResult = await resolveFile(targetPath);
     final libraryResult = await unitResult.session.getResolvedLibraryByElement(
       unitResult.libraryElement,
     ) as ResolvedLibraryResult;
