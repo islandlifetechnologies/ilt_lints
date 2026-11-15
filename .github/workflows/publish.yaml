@@ -35,10 +35,10 @@ jobs:
       CHANGES: ${{ steps.detect_changes.outputs.CHANGES }}
       CHANGES_ARRAY: ${{ steps.detect_changes.outputs.CHANGES_ARRAY }}
     steps:
-      - uses: islandlifetechnologies/gh_tools@v1
-
       - name: Checkout Code Base
         uses: actions/checkout@v7
+
+      - uses: islandlifetechnologies/gh_tools@v1
 
       - name: Look for Changes
         id: detect_changes

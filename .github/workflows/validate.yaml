@@ -29,10 +29,10 @@ jobs:
       CHANGES: ${{ steps.detect_changes.outputs.CHANGES }}
       CHANGES_ARRAY: ${{ steps.detect_changes.outputs.CHANGES_ARRAY }}
     steps:
-      - uses: islandlifetechnologies/gh_tools@v1
-
       - name: Checkout Code Base
         uses: actions/checkout@v7
+
+      - uses: islandlifetechnologies/gh_tools@v1
 
       - name: Look for Changes
         id: detect_changes
@@ -53,12 +53,12 @@ jobs:
     name: "Validate ${{ matrix.package }}"
     runs-on: ubuntu-latest
     steps:
-      - uses: islandlifetechnologies/gh_tools@v1
-
       - name: Checkout Code Base
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
+      - uses: islandlifetechnologies/gh_tools@v1
 
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
