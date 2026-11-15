@@ -1,3 +1,7 @@
+## 2.0.4
+
+- Updated README to point to documentation
+
 ## 2.0.3
 
 - Updated to use jaspr_lint_builder package for lint validation.
