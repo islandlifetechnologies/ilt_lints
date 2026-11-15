@@ -1,0 +1,52 @@
+---
+$schema: https://json-schema.org/draft/2020-12/schema
+type: object
+title: CustomLints
+additionalProperties: false
+required:
+  - title
+  - lints
+properties:
+  title:
+    type: string
+    description: The title to display on the rendered on the page for these lints.
+  lints:
+    type: array
+    items:
+      $ref: "#/$defs/CustomLint"
+
+$defs:
+  CustomLint:
+    type: object
+    required:
+      - name
+      - description
+      - do
+      - bad
+      - good
+      - enable
+
+    properties:
+      name:
+        type: string
+        example: valid_json_serializable
+      do:
+        type: string
+        example: A short one line statement explaining what the developer should be doing.
+      bad:
+        type: array
+        description: List of dart code snippets that trigger this lint.
+        items:
+          type: string
+      good:
+        type: array
+        description: List of dart code snippets that should pass this lint.
+        items:
+          type: string
+      quick_fix:
+        type: boolean
+        default: false
+        description: Whether the custom lint has a quick fix. Defaults to false.
+      enable:
+        type: string
+        description: Description of how to enable the lint via the `analysis_options.yaml` file.

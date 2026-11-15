@@ -1,0 +1,393 @@
+---
+title: ILT Lints
+lints:
+  - name: export_library
+    description: >-
+      Ensures all files matching any `include` glob (and not matching any
+      optional `exclude` glob) for a configured `exporter` file are exported by
+      that exporter. If a file overlaps `include` and `exclude`, `exclude` wins.
+    do: Export all library source files from your package's exporter library file.
+    bad:
+      - |
+        // lib/my_package.dart
+        // Missing export for `src/beta.dart`, which matches `src/**/*.dart`.
+        export 'src/alpha.dart';
+    good:
+      - |
+        // lib/my_package.dart
+        // Exports all matching library files under `src/`.
+        export 'src/alpha.dart';
+        export 'src/beta.dart';
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            export_library: true
+
+      # Optional configuration (shown with defaults):
+      export_library:
+        - exporter: lib/${packageName}.dart
+          include:
+            - src/**/*.dart
+          exclude:
+            - "**/g.dart"
+            - "**/freezed.dart"
+
+  - name: prefer_const_constructors
+    description: >-
+      Detects classes whose constructor (primary constructor or generative
+      constructor) can be marked `const` without any other changes and flags
+      them if not already marked `const`.
+    do: Mark class constructors as `const` whenever the class can be constant without other changes.
+    bad:
+      - |
+        // Primary constructor has only final fields and can be marked `const`.
+        class User(final String name) {}
+      - |
+        class Point {
+          // Generative constructor only initializes final fields and can be `const`.
+          Point(this.x, this.y);
+
+          final int x;
+          final int y;
+        }
+    good:
+      - |
+        // Primary constructor is marked `const`.
+        class const User(final String name) {}
+      - |
+        class Point {
+          // Generative constructor is marked `const`.
+          const Point(this.x, this.y);
+
+          final int x;
+          final int y;
+        }
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            prefer_const_constructors: true
+
+  - name: prefer_primary_constructors
+    description: >-
+      Detects classes that do not use a Dart primary constructor (`class
+      Foo(...)` or `class const Foo(...)`) when a primary constructor can be
+      used.
+    do: Use Dart primary constructors for classes instead of declaring constructors in the class body.
+    bad:
+      - |
+        // Declares a constructor and field in the class body instead of a primary constructor.
+        class User {
+          const User(this.name);
+
+          final String name;
+        }
+      - |
+        // Uses an implicit default constructor instead of an explicit primary constructor.
+        class EmptyService {}
+    good:
+      - |
+        // Declares the constructor and `name` field directly in the primary constructor.
+        class const User(final String name) {}
+      - |
+        // Declares an explicit primary constructor in the class header.
+        class const EmptyService() {}
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            prefer_primary_constructors: true
+
+  - name: sort_fields
+    description: >-
+      Ensures fields within a type body (classes, mixins, enums, extensions, and
+      extension types) appear before all methods, getters, setters, and
+      operators (ignoring constructors), grouped by scope (public static const,
+      private static const, public static, private static, public instance,
+      private instance), with `final` fields before non-`final` fields when
+      `final_first` is enabled, and sorted alphabetically within each group.
+    do: Sort fields above methods by scope, finality, and alphabetically within each group.
+    bad:
+      - |
+        class Example {
+          // Method appears before fields.
+          void someMethod() {}
+
+          // Instance fields are not sorted alphabetically (`bField` before `aField`).
+          final int bField = 1;
+          final int aField = 2;
+          // Static const field appears after instance fields.
+          static const int aConst = 1;
+        }
+    good:
+      - |
+        class Example {
+          // Static const fields come first.
+          static const int aConst = 1;
+
+          // Instance fields follow, sorted alphabetically above methods.
+          final int aField = 2;
+          final int bField = 1;
+
+          void someMethod() {}
+        }
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            sort_fields: true
+
+      # Optional configuration (shown with default):
+      sort_fields:
+        final_first: true
+
+  - name: sort_functions_alphabetically
+    description: >-
+      Ensures functions, getters, and setters within a type body (classes,
+      mixins, enums, extensions, and extension types) are sorted alphabetically
+      (lexicographically) within each scope. Fields, constructors, and operators
+      are ignored.
+    do: Sort functions, getters, and setters alphabetically within each scope.
+    bad:
+      - |
+        class Example {
+          // Static methods are out of alphabetical order (`betaStatic` before `alphaStatic`).
+          static void betaStatic() {}
+          static void alphaStatic() {}
+
+          // Getters are out of alphabetical order (`zebraGetter` before `alphaGetter`).
+          int get zebraGetter => 1;
+          int get alphaGetter => 2;
+
+          // Instance methods are out of alphabetical order (`betaInstance` before `alphaInstance`).
+          void betaInstance() {}
+          void alphaInstance() {}
+        }
+    good:
+      - |
+        class Example {
+          // Static methods, getters, and instance methods are sorted alphabetically within each scope.
+          static void alphaStatic() {}
+          static void betaStatic() {}
+
+          int get alphaGetter => 2;
+          int get zebraGetter => 1;
+
+          void alphaInstance() {}
+          void betaInstance() {}
+        }
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            sort_functions_alphabetically: true
+
+  - name: sort_functions_by_scope
+    description: >-
+      Ensures functions, getters, and setters within a type body (classes,
+      mixins, enums, extensions, and extension types) are sorted by scope:
+      public static getters, public static setters, public static functions,
+      private static getters, private static setters, private static functions,
+      public getters, public setters, private getters, private setters, public
+      instance functions, and private instance functions. Fields, constructors,
+      and operators are ignored.
+    do: Sort functions, getters, and setters by static/instance and visibility scope.
+    bad:
+      - |
+        class Example {
+          // Private instance method appears before public instance, getter, and static members.
+          void _privateInstance() {}
+          void publicInstance() {}
+          int get publicGetter => 1;
+          static void publicStatic() {}
+        }
+    good:
+      - |
+        class Example {
+          // Ordered by scope: public static, public getter, public instance, then private instance.
+          static void publicStatic() {}
+
+          int get publicGetter => 1;
+
+          void publicInstance() {}
+
+          void _privateInstance() {}
+        }
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            sort_functions_by_scope: true
+
+  - name: sort_named_parameters
+    description: >-
+      Ensures named parameters in function, method, and constructor declarations
+      and named arguments at call sites are sorted alphabetically. Leading
+      underscores on private named parameters are ignored when sorting so `_foo`
+      sorts as `foo`. Supports `required_first` and `ignore` options in
+      `analysis_options.yaml`.
+    do: Sort named parameters in declarations and named arguments at call sites alphabetically.
+    bad:
+      - |
+        class Example {
+          // Named parameters are not in alphabetical order (`beta` before `alpha`).
+          const Example({
+            required this.beta,
+            required this.alpha,
+          });
+
+          final int alpha;
+          final int beta;
+        }
+
+        void caller() {
+          // Named arguments at the call site are not in alphabetical order.
+          const Example(beta: 2, alpha: 1);
+        }
+    good:
+      - |
+        class Example {
+          // Named parameters are sorted alphabetically (`alpha` before `beta`).
+          const Example({
+            required this.alpha,
+            required this.beta,
+          });
+
+          final int alpha;
+          final int beta;
+        }
+
+        void caller() {
+          // Named arguments at the call site are sorted alphabetically.
+          const Example(alpha: 1, beta: 2);
+        }
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            sort_named_parameters: true
+
+      # Optional configuration:
+      sort_named_parameters:
+        required_first: false
+        ignore:
+          - key
+          - child
+
+  - name: use_clock
+    description: >-
+      Detects usages of `DateTime.now()` and `DateTime.now` tear-offs in files
+      inside the `lib/` folder (ignoring `test/` and other non-`lib/`
+      directories) and requires using `clock.now()` / `clock.now` from
+      `package:clock/clock.dart` so that time can be mocked in tests.
+    do: Use `clock.now()` from `package:clock/clock.dart` instead of `DateTime.now()` in `lib/` files.
+    bad:
+      - |
+        // Direct `DateTime.now` usages in `lib/` cannot be mocked in tests.
+        DateTime currentTime() => DateTime.now();
+
+        final nowTearOff = DateTime.now;
+    good:
+      - |
+        import 'package:clock/clock.dart';
+
+        // Uses `clock.now` so tests can control time with `withClock(...)`.
+        DateTime currentTime() => clock.now();
+
+        final nowTearOff = clock.now;
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            use_clock: true
+
+  - name: use_file_system
+    description: >-
+      Detects direct usages of `dart:io` `File`, `Directory`,
+      `FileSystemEntity`, and `Link` in files inside the `lib/` folder (ignoring
+      `test/` and other non-`lib/` directories) and requires using `FileSystem`
+      from `package:file/file.dart` so file system operations can be mocked in
+      tests.
+    do: Use `FileSystem` from `package:file/file.dart` instead of `dart:io` `File`, `Directory`, `FileSystemEntity`, and `Link` in `lib/` files.
+    bad:
+      - |
+        import 'dart:io';
+
+        // Directly instantiates `dart:io` `File`, tying code to the host file system.
+        File openFile(String path) => File(path);
+    good:
+      - |
+        import 'package:file/file.dart';
+        import 'package:file/local.dart';
+        import 'package:meta/meta.dart';
+
+        // Accepts an injectable `FileSystem` from `package:file` so tests can pass `MemoryFileSystem`.
+        File openFile(
+          String path, {
+          @visibleForTesting FileSystem fs = const LocalFileSystem(),
+        }) => fs.file(path);
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            use_file_system: true
+
+  - name: valid_json_serializable
+    description: >-
+      Ensures classes annotated with `@JsonSerializable` include the generated
+      `part '<filename>.g.dart';` directive, define a valid `fromJson` factory
+      or static method calling `_$<ClassName>FromJson` when `createFactory` is
+      enabled, and define a valid `toJson` method calling `_$<ClassName>ToJson`
+      when `createToJson` is enabled.
+    do: Include the generated `.g.dart` part directive and define `fromJson` and `toJson` methods that call the generated `json_serializable` helpers.
+    bad:
+      - |
+        import 'package:json_annotation/json_annotation.dart';
+
+        // Missing `part 'user.g.dart';`, `User.fromJson`, and `toJson()` wiring.
+        @JsonSerializable()
+        class const User({
+          required final String name,
+        }) {}
+    good:
+      - |
+        import 'package:json_annotation/json_annotation.dart';
+
+        // Includes the `.g.dart` part file and wires `fromJson` and `toJson` to the generated helpers.
+        part 'user.g.dart';
+
+        @JsonSerializable()
+        class const User({
+          required final String name,
+        }) {
+          factory User.fromJson(Map<String, dynamic> json) =>
+              _$UserFromJson(json);
+
+          Map<String, dynamic> toJson() => _$UserToJson(this);
+        }
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            valid_json_serializable: true

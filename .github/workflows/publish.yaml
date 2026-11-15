@@ -1,32 +1,107 @@
 name: Tag & Publish
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
       - .github/workflows/publish.yaml
-      - pubspec.yaml
+      - packages/**/pubspec.yaml
+
+permissions:
+  contents: write
+
+env:
+  filters: |
+    ilt_lints:
+      paths:
+        - packages/ilt_lints/**
+    jaspr_lint_builder:
+      paths:
+        - packages/jaspr_lint_builder/**
+    quick_fix:
+      paths:
+        - packages/quick_fix/**
 
 jobs:
-  build:
+  detect_changes:
+    name: "Detect Changes"
     runs-on: ubuntu-latest
-
+    outputs:
+      CHANGES: ${{ steps.detect_changes.outputs.CHANGES }}
+      CHANGES_ARRAY: ${{ steps.detect_changes.outputs.CHANGES_ARRAY }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: islandlifetechnologies/gh_tools@v1
 
-      - uses: dart-lang/setup-dart@v1
+      - name: Checkout Code Base
+        uses: actions/checkout@v7
+
+      - name: Look for Changes
+        id: detect_changes
+        shell: bash
+        run: |
+          detect_changes \
+            --filters "${{ env.filters }}" \
+            --token "${{ secrets.GITHUB_TOKEN }}"
+
+  publish:
+    needs:
+      - detect_changes
+    if: ${{ needs.detect_changes.outputs.CHANGES_ARRAY != '[]' && needs.detect_changes.outputs.CHANGES_ARRAY != '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.detect_changes.outputs.CHANGES_ARRAY) }}
+    name: "Tag & Publish ${{ matrix.package }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: islandlifetechnologies/gh_tools@v1
+
+      - name: Checkout Code Base
+        uses: actions/checkout@v7
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Validate ${{ matrix.package }}
+        shell: bash
+        run: |
+          set -e
+
+          dart_pre_commit --step=pub-get --path="packages/${{ matrix.package }}"
+          dart_pre_commit --step=build-runner --path="packages/${{ matrix.package }}"
+          dart_pre_commit --step=format-fail --path="packages/${{ matrix.package }}"
+          dart_pre_commit --step=analyze --path="packages/${{ matrix.package }}"
+          dart_pre_commit --step=test --path="packages/${{ matrix.package }}"
+          dart_pre_commit --step=changelog-version --path="packages/${{ matrix.package }}"
+
+      - name: Validate Lints Schema
+        shell: bash
+        run: |
+          set -e
+
+          if [ -f "packages/${{ matrix.package }}/assets/lints.yaml" ]; then
+            dart pub run jaspr_lint_builder:validate \
+              --input "packages/${{ matrix.package }}/assets/lints.yaml"
+          fi
 
       - name: Create Tag
         shell: bash
         run: |
           set -e
 
-          dart pub global activate -sgit https://github.com/islandlifetechnologies/action-pubspec-tag
-          dart pub global run dart_version_autotag:tag --token "${{ secrets.GITHUB_TOKEN }}"
+          pubspec_tag \
+            --path "packages/${{ matrix.package }}" \
+            --prefix "${{ matrix.package }}-v" \
+            --token "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Publish
         shell: bash
+        working-directory: packages/${{ matrix.package }}
         run: |
           set -e
 

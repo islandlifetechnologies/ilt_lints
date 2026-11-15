@@ -1,0 +1,29 @@
+name: jaspr_lint_builder
+description: A Dart website builder using the Jaspr framework that generates documentation pages for custom lints from a YAML specification.
+repository: https://github.com/islandlifetechnologies/ilt_lints
+version: 1.0.0
+
+environment:
+  sdk: ^3.13.0
+
+resolution: workspace
+
+executables:
+  build: build
+  jaspr_lint_builder: build
+  validate: validate
+
+dependencies:
+  args: ^2.7.0
+  file: ^7.0.1
+  image: ^4.13.1
+  jaspr: ^0.23.0
+  json_schema: ^5.2.2
+  meta: ^1.19.0
+  path: ^1.9.1
+  yaon: ^2.0.3
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  ilt_lints: any
+  test: ^1.33.0
