@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show HttpServer, stdout;
 
 import 'package:args/args.dart';
@@ -14,9 +15,9 @@ Future<LintSiteBuildResult> buildExampleSite({
   String? faviconFilePath,
   FileSystem fs = const LocalFileSystem(),
   String outputDirectoryPath = 'build/web',
-  String? yamlFilePath,
+  required String yamlFilePath,
 }) {
-  final resolvedYamlPath = yamlFilePath ?? _resolveExampleYamlPath(fs);
+  final resolvedYamlPath = yamlFilePath;
   final resolvedFaviconPath = faviconFilePath ?? _resolveExampleFaviconPath(fs);
   final builder = JasprLintSiteBuilder(
     faviconFilePath: resolvedFaviconPath,
@@ -55,7 +56,7 @@ Future<HttpServer> serveExampleSite({
   Object host = 'localhost',
   String outputDirectoryPath = 'build/web',
   int port = 8080,
-  String? yamlFilePath,
+  required String yamlFilePath,
 }) async {
   final result = await buildExampleSite(
     faviconFilePath: faviconFilePath,
@@ -81,7 +82,7 @@ Future<HttpServer> serveExampleSite({
 }
 
 /// Parses CLI arguments, builds the example website, and serves it via [shelf].
-Future<HttpServer?> runExampleServeCli(
+Future<void> runExampleServeCli(
   List<String> args, {
   FileSystem fs = const LocalFileSystem(),
 }) async {
@@ -96,7 +97,12 @@ Future<HttpServer?> runExampleServeCli(
       defaultsTo: 'localhost',
       help: 'Hostname or IP address to bind the shelf server to.',
     )
-    ..addOption('input', abbr: 'i', help: 'Path to the input lints.yaml file.')
+    ..addOption(
+      'input',
+      abbr: 'i',
+      defaultsTo: '../../ilt_lints/assets/lints.yaml',
+      help: 'Path to the input lints.yaml file.',
+    )
     ..addOption(
       'output',
       abbr: 'o',
@@ -121,23 +127,42 @@ Future<HttpServer?> runExampleServeCli(
     stdout.writeln('Builds and serves the custom lint documentation website.');
     stdout.writeln();
     stdout.writeln(parser.usage);
-    return null;
+    return;
   }
 
   final faviconPath = parsed['favicon'] as String?;
   final host = parsed['host'] as String;
-  final inputPath = parsed['input'] as String?;
+  final inputPath = parsed['input'] as String;
   final outputDir = parsed['output'] as String;
   final port = int.tryParse(parsed['port'] as String? ?? '') ?? 8080;
 
-  return serveExampleSite(
-    faviconFilePath: faviconPath,
-    fs: fs,
-    host: host,
-    outputDirectoryPath: outputDir,
-    port: port,
-    yamlFilePath: inputPath,
-  );
+  var restart = Completer<void>();
+
+  void restartServer() async {
+    while (true) {
+      final r = restart;
+      final server = await serveExampleSite(
+        faviconFilePath: faviconPath,
+        fs: fs,
+        host: host,
+        outputDirectoryPath: outputDir,
+        port: port,
+        yamlFilePath: inputPath,
+      );
+
+      await r.future;
+
+      await server.close();
+    }
+  }
+
+  restartServer();
+
+  final inputFile = fs.file(inputPath);
+  inputFile.watch().listen((_) {
+    restart.complete();
+    restart = Completer<void>();
+  });
 }
 
 String? _resolveExampleFaviconPath(FileSystem fs) {
@@ -152,18 +177,4 @@ String? _resolveExampleFaviconPath(FileSystem fs) {
     }
   }
   return null;
-}
-
-String _resolveExampleYamlPath(FileSystem fs) {
-  const candidates = <String>[
-    '../../ilt_lints/assets/lints.yaml',
-    '../ilt_lints/assets/lints.yaml',
-    'packages/ilt_lints/assets/lints.yaml',
-  ];
-  for (final candidate in candidates) {
-    if (fs.file(candidate).existsSync()) {
-      return candidate;
-    }
-  }
-  return candidates.first;
 }

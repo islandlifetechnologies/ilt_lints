@@ -8,6 +8,10 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    paths:
+      - "packages/ilt_lints/assets/lints.yaml"
+      - "packages/jaspr_lint_builder/**"
+      - ".github/workflows/gh_pages.yaml"
 
 permissions:
   contents: write

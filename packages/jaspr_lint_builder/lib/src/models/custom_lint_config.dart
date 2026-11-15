@@ -6,13 +6,15 @@ import '../lint_schema_validator.dart';
 
 /// A single custom lint rule definition matching `lint_schema.yaml`.
 class const CustomLintRule({
+  final String? avoidStatement,
   required final List<String> bad,
   required final String description,
-  required final String doStatement,
+  final String? doStatement,
   required final String enable,
   required final List<String> good,
   required final String name,
   final bool quickFix = false,
+  final List<String> tags = const <String>[],
 }) {
   /// Parses a [CustomLintRule] from a normalized YAML/JSON `Map<Object?, Object?>`.
   factory CustomLintRule.fromYamlMap(Map<Object?, Object?> map) {
@@ -22,10 +24,16 @@ class const CustomLintRule({
       'description',
       ruleName: name,
     );
-    final doStatement = _requireNonEmptyString(map, 'do', ruleName: name);
+    final avoidStatement = _optionalNonEmptyString(
+      map,
+      'avoid',
+      ruleName: name,
+    );
+    final doStatement = _optionalNonEmptyString(map, 'do', ruleName: name);
     final bad = _requireStringList(map, 'bad', ruleName: name);
     final good = _requireStringList(map, 'good', ruleName: name);
     final enable = _requireNonEmptyString(map, 'enable', ruleName: name);
+    final tags = _optionalStringList(map, 'tags', ruleName: name);
 
     final rawQuickFix = map['quick_fix'];
     final bool quickFix;
@@ -40,6 +48,7 @@ class const CustomLintRule({
     }
 
     const allowedKeys = {
+      'avoid',
       'bad',
       'description',
       'do',
@@ -47,6 +56,7 @@ class const CustomLintRule({
       'good',
       'name',
       'quick_fix',
+      'tags',
     };
     for (final key in map.keys) {
       if (key is! String || !allowedKeys.contains(key)) {
@@ -55,6 +65,7 @@ class const CustomLintRule({
     }
 
     return CustomLintRule(
+      avoidStatement: avoidStatement,
       bad: List<String>.unmodifiable(bad),
       description: description,
       doStatement: doStatement,
@@ -62,7 +73,52 @@ class const CustomLintRule({
       good: List<String>.unmodifiable(good),
       name: name,
       quickFix: quickFix,
+      tags: List<String>.unmodifiable(tags),
     );
+  }
+
+  static String? _optionalNonEmptyString(
+    Map<Object?, Object?> map,
+    String key, {
+    required String ruleName,
+  }) {
+    final value = map[key];
+    if (value == null) {
+      return null;
+    }
+    if (value is! String) {
+      throw FormatException(
+        "Invalid string property '$key' in lint '$ruleName'.",
+      );
+    }
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  static List<String> _optionalStringList(
+    Map<Object?, Object?> map,
+    String key, {
+    required String ruleName,
+  }) {
+    final value = map[key];
+    if (value == null) {
+      return const <String>[];
+    }
+    if (value is! List) {
+      throw FormatException(
+        "Invalid list property '$key' in lint '$ruleName'.",
+      );
+    }
+    final items = <String>[];
+    for (final item in value) {
+      if (item is! String || item.trim().isEmpty) {
+        throw FormatException(
+          "All items in '$key' for lint '$ruleName' must be non-empty strings.",
+        );
+      }
+      items.add(item.trim());
+    }
+    return items;
   }
 
   static String _requireNonEmptyString(
@@ -104,11 +160,14 @@ class const CustomLintRule({
   }
 }
 
-/// Top-level document containing the site title and all custom lint rules from
-/// a `lints.yaml` file.
+/// Top-level document containing the site title, optional description, package
+/// metadata, and all custom lint rules from a `lints.yaml` file.
 class const CustomLintsDocument({
+  final String? description,
   required final List<CustomLintRule> lints,
+  final String? packageName,
   required final String title,
+  final String? version,
 }) {
   /// Parses and validates a YAML string against `assets/lint_schema.yaml` using
   /// `yaon` and `json_schema`.
@@ -144,6 +203,9 @@ class const CustomLintsDocument({
       );
     }
     final title = rawTitle.trim();
+    final description = _optionalTopLevelString(root, 'description');
+    final packageName = _optionalTopLevelString(root, 'package');
+    final version = _optionalTopLevelString(root, 'version');
 
     final rawLints = root['lints'];
     if (rawLints is! List) {
@@ -165,14 +227,35 @@ class const CustomLintsDocument({
 
     parsedRules.sort((a, b) => a.name.compareTo(b.name));
     return CustomLintsDocument(
+      description: description,
       lints: List<CustomLintRule>.unmodifiable(parsedRules),
+      packageName: packageName,
       title: title,
+      version: version,
+    );
+  }
+
+  static String? _optionalTopLevelString(
+    Map<Object?, Object?> root,
+    String key,
+  ) {
+    final raw = root[key];
+    if (raw == null) {
+      return null;
+    }
+    if (raw is String) {
+      final trimmed = raw.trim();
+      return trimmed.isEmpty ? null : trimmed;
+    }
+    throw FormatException(
+      'Invalid optional top-level "$key": expected a string.',
     );
   }
 }
 
 /// Summary of the files generated by `JasprLintSiteBuilder`.
 class const LintSiteBuildResult({
+  final String? description,
   required final List<String> generatedFiles,
   required final String outputDirectoryPath,
   required final List<CustomLintRule> rules,

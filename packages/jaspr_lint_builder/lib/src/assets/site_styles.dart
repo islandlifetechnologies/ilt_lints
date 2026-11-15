@@ -56,6 +56,9 @@ String buildSiteStylesheet() => r'''
   --badge-stable-fg: #137333;
   --badge-fix-bg: #e8f0fe;
   --badge-fix-fg: #1967d2;
+  --badge-tag-bg: #f1f5f9;
+  --badge-tag-fg: #334155;
+  --badge-tag-border: #cbd5e1;
   --bad-border: #d93025;
   --bad-header-bg: #fce8e6;
   --bad-header-fg: #c5221f;
@@ -88,6 +91,9 @@ String buildSiteStylesheet() => r'''
   --badge-stable-fg: #56d364;
   --badge-fix-bg: rgba(56, 139, 253, 0.18);
   --badge-fix-fg: #79c0ff;
+  --badge-tag-bg: rgba(148, 163, 184, 0.14);
+  --badge-tag-fg: #cbd5e1;
+  --badge-tag-border: #334155;
   --bad-border: #f85149;
   --bad-header-bg: rgba(248, 81, 73, 0.16);
   --bad-header-fg: #ff7b72;
@@ -410,6 +416,24 @@ code, pre {
   color: var(--text-muted);
 }
 
+.badge-tag {
+  background-color: var(--badge-tag-bg);
+  color: var(--badge-tag-fg);
+  border: 1px solid var(--badge-tag-border);
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.badge-tag:hover,
+.badge-tag.active {
+  background-color: var(--badge-fix-bg);
+  color: var(--badge-fix-fg);
+  border-color: var(--brand-link);
+  text-decoration: none;
+}
+
 /* Sections */
 .doc-section {
   margin-bottom: 36px;
@@ -438,6 +462,22 @@ code, pre {
   background-color: var(--bg-surface);
   margin: 16px 0;
   color: var(--text-secondary);
+}
+
+.avoid-guideline-paragraph {
+  font-size: 1.06rem;
+  background-color: var(--bg-surface);
+  border-left: 4px solid var(--bad-border);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  margin: 16px 0;
+}
+
+.avoid-keyword,
+.avoid-prefix {
+  color: var(--bad-border);
+  font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
 .do-guideline-paragraph {
@@ -496,9 +536,53 @@ code, pre {
   color: var(--good-header-fg);
 }
 
-.yaml-header {
+.yaml-header,
+.dart-header {
   background-color: var(--yaml-header-bg);
   color: var(--yaml-header-fg);
+}
+
+.markdown-content > :first-child {
+  margin-top: 0;
+}
+
+.markdown-content > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-paragraph {
+  margin: 0 0 12px;
+}
+
+.markdown-list {
+  margin: 8px 0 14px;
+  padding-left: 24px;
+}
+
+.markdown-list li {
+  margin-bottom: 4px;
+}
+
+.markdown-hr {
+  border: 0;
+  border-top: 1px solid var(--border-color);
+  margin: 18px 0;
+}
+
+.markdown-link {
+  color: var(--brand-link);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown-link:hover {
+  color: var(--brand-link-hover);
+}
+
+.markdown-code-card {
+  margin: 14px 0;
+  font-size: 1rem;
 }
 
 .example-label {
@@ -581,6 +665,7 @@ code, pre {
 
 .filter-chips {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
@@ -660,8 +745,9 @@ code, pre {
 
 .rule-card-badges {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .rule-details-link {
@@ -669,6 +755,7 @@ code, pre {
   font-weight: 600;
 }
 
+.rule-card-avoid,
 .rule-card-do {
   margin: 8px 0 6px;
   font-weight: 500;

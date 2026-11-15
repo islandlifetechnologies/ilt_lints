@@ -2,6 +2,8 @@ export 'main.dart' show IltLintsPlugin, plugin;
 export 'src/fixes/export_library_fix.dart' show ExportLibraryFix;
 export 'src/fixes/prefer_const_constructors_fix.dart'
     show PreferConstConstructorsFix;
+export 'src/fixes/prefer_named_parameters_fix.dart'
+    show PreferNamedParametersFix;
 export 'src/fixes/prefer_primary_constructors_fix.dart'
     show PreferPrimaryConstructorsFix;
 export 'src/fixes/sort_fields_fix.dart' show SortFieldsFix;
@@ -14,10 +16,14 @@ export 'src/fixes/use_clock_fix.dart' show UseClockFix;
 export 'src/fixes/use_file_system_fix.dart' show UseFileSystemFix;
 export 'src/fixes/valid_json_serializable_fix.dart'
     show ValidJsonSerializableFix;
+export 'src/rules/avoid_large_ccn.dart'
+    show AvoidLargeCcn, AvoidLargeCcnOptions;
 export 'src/rules/export_library.dart'
     show ExportLibrary, ExportLibraryOption, ExportLibraryOptions;
 export 'src/rules/prefer_const_constructors.dart'
     show PreferConstConstructors, PreferConstConstructorsAnalysis;
+export 'src/rules/prefer_named_parameters.dart'
+    show PreferNamedParameters, PreferNamedParametersOptions;
 export 'src/rules/prefer_primary_constructors.dart'
     show PreferPrimaryConstructors, PreferPrimaryConstructorsAnalysis;
 export 'src/rules/sort_fields.dart'

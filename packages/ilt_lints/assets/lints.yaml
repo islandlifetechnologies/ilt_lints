@@ -1,12 +1,88 @@
 ---
 title: ILT Lints
+description: |
+  Custom lint rules for use in ILT projects.  Includes rules for code style,
+  testability, performance, and quality-of-life utility that can turn
+  required boilerplate code into a simple quick fix.
+
+  With the exception of the `export_library` lint, the lints are all enabled by
+  default when the `ilt_lints` package is included in your project's
+  `analysis_options.yaml` as follows:
+
+  ```yaml
+  include: package:ilt_lints/lints.yaml
+  ```
+package: ilt_lints
+version: ^2.0.0
 lints:
+  - name: avoid_large_ccn
+    tags:
+      - experimental
+      - quality
+    description: >-
+      Calculates the [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity)
+      number (CCN) for every function, method, and constructor and triggers when
+      the complexity exceeds the configured `ccn` threshold (defaults to `20`).
+      Each conditional branch, loop, `case`, `catch`, ternary operator (`?:`),
+      null-coalescing operator (`??`, `??=`), and logical operator (`&&`, `||`)
+      increases the function's cyclomatic complexity.
+    avoid: >-
+      Avoid deeply nested control flow and excessive branching in a single
+      function; extract smaller, single-purpose helper functions or use early
+      returns and polymorphism to keep [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity)
+      low.
+    bad:
+      - |
+        // High cyclomatic complexity caused by many chained branches in a single function.
+        String classifyScore(int score, {required bool bonus, required bool penalty}) {
+          if (score > 90 && bonus) {
+            return 'S';
+          } else if (score > 80 || (score > 75 && bonus)) {
+            return penalty ? 'B+' : 'A';
+          } else if (score > 70 && !penalty) {
+            return 'B';
+          } else if (score > 60 || bonus) {
+            return penalty ? 'C-' : 'C';
+          }
+          return 'F';
+        }
+    good:
+      - |
+        // Complexity is reduced by extracting focused helper functions and simplifying branches.
+        String classifyScore(int score, {required bool bonus, required bool penalty}) {
+          final adjusted = score + (bonus ? 5 : 0) - (penalty ? 5 : 0);
+          return _gradeForAdjustedScore(adjusted);
+        }
+
+        String _gradeForAdjustedScore(int score) => switch (score) {
+          > 90 => 'S',
+          > 80 => 'A',
+          > 70 => 'B',
+          > 60 => 'C',
+          _ => 'F',
+        };
+    quick_fix: false
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            avoid_large_ccn: true
+
+      # Optional configuration (shown with default):
+      avoid_large_ccn:
+        ccn: 20
+
   - name: export_library
+    tags:
+      - experimental
+      - utility
     description: >-
       Ensures all files matching any `include` glob (and not matching any
       optional `exclude` glob) for a configured `exporter` file are exported by
       that exporter. If a file overlaps `include` and `exclude`, `exclude` wins.
-    do: Export all library source files from your package's exporter library file.
+    do: >-
+      Export all library source files from your package's exporter library file.
     bad:
       - |
         // lib/my_package.dart
@@ -40,7 +116,12 @@ lints:
       Detects classes whose constructor (primary constructor or generative
       constructor) can be marked `const` without any other changes and flags
       them if not already marked `const`.
-    do: Mark class constructors as `const` whenever the class can be constant without other changes.
+    tags:
+      - performance
+      - style
+    do: >-
+      Mark class constructors as `const` whenever the class can be constant
+      without other changes.
     bad:
       - |
         // Primary constructor has only final fields and can be marked `const`.
@@ -73,12 +154,64 @@ lints:
           diagnostics:
             prefer_const_constructors: true
 
+  - name: prefer_named_parameters
+    tags:
+      - style
+    description: >-
+      Triggers when a function, method, or constructor declares more than
+      `count` positional parameters (defaults to `2`). Supports configuring
+      `count` in `analysis_options.yaml`.
+    do: >-
+      Use named parameters when a function has more than the configured number
+      of positional parameters.
+    bad:
+      - |
+        // Declares 3 positional parameters, exceeding the default `count` of 2.
+        void createUser(String firstName, String lastName, int age) {}
+      - |
+        // Declares 2 required and 1 optional positional parameter (3 positional total).
+        class const User(String firstName, String lastName, [int? age]) {
+          /* ... */
+        }
+    good:
+      - |
+        // Uses named parameters instead of more than 2 positional parameters.
+        void createUser({
+          required int age,
+          required String firstName,
+          required String lastName,
+        }) {}
+      - |
+        // Converts all parameters to named parameters while keeping `age` optional.
+        class const User({
+          required String firstName,
+          required String lastName,
+          int? age,
+        }) {
+          /* ... */
+        }
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            prefer_named_parameters: true
+
+      # Optional configuration (shown with default):
+      prefer_named_parameters:
+        count: 2
+
   - name: prefer_primary_constructors
+    tags:
+      - style
     description: >-
       Detects classes that do not use a Dart primary constructor (`class
       Foo(...)` or `class const Foo(...)`) when a primary constructor can be
       used.
-    do: Use Dart primary constructors for classes instead of declaring constructors in the class body.
+    do: >-
+      Use Dart primary constructors for classes instead of declaring
+      constructors in the class body.
     bad:
       - |
         // Declares a constructor and field in the class body instead of a primary constructor.
@@ -106,6 +239,8 @@ lints:
             prefer_primary_constructors: true
 
   - name: sort_fields
+    tags:
+      - style
     description: >-
       Ensures fields within a type body (classes, mixins, enums, extensions, and
       extension types) appear before all methods, getters, setters, and
@@ -113,7 +248,9 @@ lints:
       private static const, public static, private static, public instance,
       private instance), with `final` fields before non-`final` fields when
       `final_first` is enabled, and sorted alphabetically within each group.
-    do: Sort fields above methods by scope, finality, and alphabetically within each group.
+    do: >-
+      Sort fields above methods by scope, finality, and alphabetically within
+      each group.
     bad:
       - |
         class Example {
@@ -151,6 +288,8 @@ lints:
         final_first: true
 
   - name: sort_functions_alphabetically
+    tags:
+      - style
     description: >-
       Ensures functions, getters, and setters within a type body (classes,
       mixins, enums, extensions, and extension types) are sorted alphabetically
@@ -194,6 +333,8 @@ lints:
             sort_functions_alphabetically: true
 
   - name: sort_functions_by_scope
+    tags:
+      - style
     description: >-
       Ensures functions, getters, and setters within a type body (classes,
       mixins, enums, extensions, and extension types) are sorted by scope:
@@ -202,7 +343,9 @@ lints:
       public getters, public setters, private getters, private setters, public
       instance functions, and private instance functions. Fields, constructors,
       and operators are ignored.
-    do: Sort functions, getters, and setters by static/instance and visibility scope.
+    do: >-
+      Sort functions, getters, and setters by static/instance and visibility
+      scope.
     bad:
       - |
         class Example {
@@ -233,13 +376,17 @@ lints:
             sort_functions_by_scope: true
 
   - name: sort_named_parameters
+    tags:
+      - style
     description: >-
       Ensures named parameters in function, method, and constructor declarations
       and named arguments at call sites are sorted alphabetically. Leading
       underscores on private named parameters are ignored when sorting so `_foo`
       sorts as `foo`. Supports `required_first` and `ignore` options in
       `analysis_options.yaml`.
-    do: Sort named parameters in declarations and named arguments at call sites alphabetically.
+    do: >-
+      Sort named parameters in declarations and named arguments at call sites
+      alphabetically.
     bad:
       - |
         class Example {
@@ -290,12 +437,16 @@ lints:
           - child
 
   - name: use_clock
+    tags:
+      - testability
     description: >-
       Detects usages of `DateTime.now()` and `DateTime.now` tear-offs in files
       inside the `lib/` folder (ignoring `test/` and other non-`lib/`
       directories) and requires using `clock.now()` / `clock.now` from
       `package:clock/clock.dart` so that time can be mocked in tests.
-    do: Use `clock.now()` from `package:clock/clock.dart` instead of `DateTime.now()` in `lib/` files.
+    do: >-
+      Use `clock.now()` from `package:clock/clock.dart` instead of
+      `DateTime.now()` in `lib/` files.
     bad:
       - |
         // Direct `DateTime.now` usages in `lib/` cannot be mocked in tests.
@@ -319,13 +470,17 @@ lints:
             use_clock: true
 
   - name: use_file_system
+    tags:
+      - testability
     description: >-
       Detects direct usages of `dart:io` `File`, `Directory`,
       `FileSystemEntity`, and `Link` in files inside the `lib/` folder (ignoring
       `test/` and other non-`lib/` directories) and requires using `FileSystem`
       from `package:file/file.dart` so file system operations can be mocked in
       tests.
-    do: Use `FileSystem` from `package:file/file.dart` instead of `dart:io` `File`, `Directory`, `FileSystemEntity`, and `Link` in `lib/` files.
+    do: >-
+      Use `FileSystem` from `package:file/file.dart` instead of `dart:io` 
+      `File`, `Directory`, `FileSystemEntity`, and `Link` in `lib/` files.
     bad:
       - |
         import 'dart:io';
@@ -352,13 +507,17 @@ lints:
             use_file_system: true
 
   - name: valid_json_serializable
+    tags:
+      - utility
     description: >-
       Ensures classes annotated with `@JsonSerializable` include the generated
       `part '<filename>.g.dart';` directive, define a valid `fromJson` factory
       or static method calling `_$<ClassName>FromJson` when `createFactory` is
       enabled, and define a valid `toJson` method calling `_$<ClassName>ToJson`
       when `createToJson` is enabled.
-    do: Include the generated `.g.dart` part directive and define `fromJson` and `toJson` methods that call the generated `json_serializable` helpers.
+    do: >-
+      Include the generated `.g.dart` part directive and define `fromJson` and
+      `toJson` methods that call the generated `json_serializable` helpers.
     bad:
       - |
         import 'package:json_annotation/json_annotation.dart';

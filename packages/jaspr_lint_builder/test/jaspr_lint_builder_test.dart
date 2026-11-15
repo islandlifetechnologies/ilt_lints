@@ -173,12 +173,16 @@ lints:
       final doc = CustomLintsDocument.fromYamlString(yamlContent);
 
       expect(doc.title, 'ILT Lints');
-      expect(doc.lints, hasLength(10));
+      expect(doc.description, isNotNull);
+      expect(doc.description, contains('Custom lint rules for use in ILT'));
+      expect(doc.lints, hasLength(12));
       expect(
         doc.lints.map((l) => l.name),
         containsAll([
+          'avoid_large_ccn',
           'export_library',
           'prefer_const_constructors',
+          'prefer_named_parameters',
           'prefer_primary_constructors',
           'sort_fields',
           'sort_functions_alphabetically',
@@ -191,11 +195,12 @@ lints:
       );
       for (final rule in doc.lints) {
         expect(rule.description, isNotEmpty);
-        expect(rule.doStatement, isNotEmpty);
+        expect(rule.doStatement != null || rule.avoidStatement != null, isTrue);
         expect(rule.bad, isNotEmpty);
         expect(rule.good, isNotEmpty);
         expect(rule.enable, isNotEmpty);
-        expect(rule.quickFix, isTrue);
+        expect(rule.quickFix, rule.name != 'avoid_large_ccn');
+        expect(rule.tags, isNotEmpty);
       }
     });
 
@@ -323,7 +328,7 @@ lints:
         );
 
         expect(result.title, 'ILT Lints');
-        expect(result.rules, hasLength(10));
+        expect(result.rules, hasLength(12));
         expect(memoryFs.file('/output/site/styles.css').existsSync(), isTrue);
         expect(memoryFs.file('/output/site/main.js').existsSync(), isTrue);
         expect(
@@ -354,13 +359,23 @@ lints:
             .file('/output/site/index.html')
             .readAsStringSync();
         expect(indexHtml, contains('ILT Lints'));
+        expect(indexHtml, contains('Custom lint rules for use in ILT'));
+        expect(indexHtml, contains('include: package:ilt_lints/lints.yaml'));
+        expect(indexHtml, contains('markdown-code-card'));
         expect(indexHtml, contains('Linter rules'));
         expect(indexHtml, contains('All linter rules'));
         expect(indexHtml, contains('styles.css'));
         expect(indexHtml, contains('main.client.dart.js'));
+        expect(indexHtml, contains('data-filter="tag:performance"'));
+        expect(indexHtml, contains('data-filter="tag:style"'));
+        expect(indexHtml, contains('data-filter="tag:testability"'));
+        expect(indexHtml, contains('data-filter="tag:utility"'));
 
         for (final rule in result.rules) {
           expect(indexHtml, contains(rule.name));
+          for (final tag in rule.tags) {
+            expect(indexHtml, contains('#$tag'));
+          }
 
           final rulePageFile = memoryFs.file(
             '/output/site/linter-rules/${rule.name}.html',
@@ -381,7 +396,13 @@ lints:
           expect(ruleHtml, contains('GOOD:'));
           expect(ruleHtml, contains('How to enable'));
           expect(ruleHtml, contains('analysis_options.yaml'));
-          expect(ruleHtml, contains('Fix available'));
+          expect(
+            ruleHtml,
+            contains(rule.quickFix ? 'Fix available' : 'No quick fix'),
+          );
+          for (final tag in rule.tags) {
+            expect(ruleHtml, contains('#$tag'));
+          }
         }
       },
     );
@@ -418,7 +439,7 @@ lints:
 
         expect(code, 0);
         expect(errBuffer.toString(), isEmpty);
-        expect(outBuffer.toString(), contains('10 lint rules (ILT Lints)'));
+        expect(outBuffer.toString(), contains('12 lint rules (ILT Lints)'));
         expect(
           memoryFs.file('/workspace/build/web/index.html').existsSync(),
           isTrue,
@@ -444,6 +465,135 @@ lints:
         expect(indexHtml, contains('favicon.ico'));
         expect(indexHtml, contains('favicon-32x32.png'));
         expect(indexHtml, contains('apple-touch-icon.png'));
+      },
+    );
+
+    test(
+      'renders markdown links and fenced code blocks in descriptions',
+      () async {
+        final memoryFs = MemoryFileSystem();
+        const markdownYaml = '''
+title: Markdown Lints
+description: |
+  See the [ILT Lints repository](https://github.com/islandlifetechnologies/ilt_lints)
+  for **full** documentation and `analysis_options.yaml` setup:
+
+  ```yaml
+  include: package:ilt_lints/lints.yaml
+  ```
+package: ilt_lints
+version: ^2.0.0
+lints:
+  - name: sample_markdown_rule
+    tags:
+      - style
+    description: |
+      Read the [Dart guide](https://dart.dev/guides) before using `sample_markdown_rule`.
+
+      ```dart
+      void example() {}
+      ```
+    do: Follow the [style guide](https://dart.dev).
+    bad:
+      - "void bad() {}"
+    good:
+      - "void good() {}"
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          diagnostics:
+            sample_markdown_rule: true
+''';
+
+        final builder = JasprLintSiteBuilder(fs: memoryFs);
+        await builder.buildFromYamlString(
+          outputDirectoryPath: '/output/md_site',
+          yamlContent: markdownYaml,
+        );
+
+        final indexHtml = memoryFs
+            .file('/output/md_site/index.html')
+            .readAsStringSync();
+        expect(
+          indexHtml,
+          contains(
+            'href="https://github.com/islandlifetechnologies/ilt_lints"',
+          ),
+        );
+        expect(indexHtml, contains('ILT Lints repository'));
+        expect(indexHtml, contains('<strong>full</strong>'));
+        expect(indexHtml, contains('include: package:ilt_lints/lints.yaml'));
+        expect(indexHtml, contains('class="language-yaml"'));
+        expect(indexHtml, contains('markdown-code-card'));
+
+        final detailHtml = memoryFs
+            .file('/output/md_site/linter-rules/sample_markdown_rule.html')
+            .readAsStringSync();
+        expect(detailHtml, contains('href="https://dart.dev/guides"'));
+        expect(detailHtml, contains('Dart guide'));
+        expect(detailHtml, contains('void example() {}'));
+        expect(detailHtml, contains('class="language-dart"'));
+      },
+    );
+
+    test(
+      'renders avoid guidelines and omits do section when do is not passed in',
+      () async {
+        final memoryFs = MemoryFileSystem();
+        const avoidYaml = '''
+title: Avoid Lints
+lints:
+  - name: avoid_only_rule
+    description: Rule with only avoid and no do.
+    avoid: Avoid calling `DateTime.now()` directly.
+    bad:
+      - "DateTime.now();"
+    good:
+      - "clock.now();"
+    enable: |
+      linter:
+        rules:
+          - avoid_only_rule
+  - name: neither_do_nor_avoid_rule
+    description: Rule with neither do nor avoid.
+    bad:
+      - "bad();"
+    good:
+      - "good();"
+    enable: |
+      linter:
+        rules:
+          - neither_do_nor_avoid_rule
+''';
+
+        final builder = JasprLintSiteBuilder(fs: memoryFs);
+        await builder.buildFromYamlString(
+          outputDirectoryPath: '/output/avoid_site',
+          yamlContent: avoidYaml,
+        );
+
+        final indexHtml = memoryFs
+            .file('/output/avoid_site/index.html')
+            .readAsStringSync();
+        expect(indexHtml, contains('AVOID '));
+        expect(indexHtml, contains('calling'));
+        expect(indexHtml, isNot(contains('rule-card-do')));
+
+        final avoidDetailHtml = memoryFs
+            .file('/output/avoid_site/linter-rules/avoid_only_rule.html')
+            .readAsStringSync();
+        expect(avoidDetailHtml, contains('avoid-guideline-paragraph'));
+        expect(avoidDetailHtml, contains('AVOID '));
+        expect(avoidDetailHtml, isNot(contains('do-guideline-paragraph')));
+
+        final neitherDetailHtml = memoryFs
+            .file(
+              '/output/avoid_site/linter-rules/neither_do_nor_avoid_rule.html',
+            )
+            .readAsStringSync();
+        expect(neitherDetailHtml, isNot(contains('avoid-guideline-paragraph')));
+        expect(neitherDetailHtml, isNot(contains('do-guideline-paragraph')));
       },
     );
   });

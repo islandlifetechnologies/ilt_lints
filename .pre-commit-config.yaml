@@ -7,9 +7,12 @@ repos:
       - id: all
         name: ilt_lints
         args: [--path=packages/ilt_lints]
+        files: ^packages/ilt_lints/(.*pubspec\.yaml|.*\.dart)$
       - id: all
         name: jaspr_lint_builder
         args: [--path=packages/jaspr_lint_builder]
+        files: ^packages/jaspr_lint_builder/(.*pubspec\.yaml|.*\.dart)$
       - id: all
         name: quick_fix
         args: [--path=packages/quick_fix]
+        files: ^packages/quick_fix/(.*pubspec\.yaml|.*\.dart)$

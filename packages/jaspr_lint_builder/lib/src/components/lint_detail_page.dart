@@ -3,6 +3,7 @@ import 'package:jaspr/jaspr.dart';
 
 import '../models/custom_lint_config.dart';
 import 'inline_code_text.dart';
+import 'markdown_content.dart';
 import 'site_layout.dart';
 
 /// Renders an individual linter rule page modeled after
@@ -144,22 +145,35 @@ class const LintDetailPage({
         id: 'details',
         tag: 'h2',
       ),
-      Component.element(
-        children: [
-          Component.element(
-            children: const [Component.text('DO ')],
-            classes: 'do-keyword',
-            tag: 'strong',
-          ),
-          InlineCodeText(content: _stripLeadingDo(rule.doStatement)),
-        ],
-        classes: 'do-guideline-paragraph',
-        tag: 'p',
-      ),
-      Component.element(
-        children: [InlineCodeText(content: rule.description)],
+      if (rule.avoidStatement != null && rule.avoidStatement!.trim().isNotEmpty)
+        Component.element(
+          children: [
+            Component.element(
+              children: const [Component.text('AVOID ')],
+              classes: 'avoid-keyword',
+              tag: 'strong',
+            ),
+            InlineCodeText(content: _stripLeadingAvoid(rule.avoidStatement!)),
+          ],
+          classes: 'avoid-guideline-paragraph',
+          tag: 'p',
+        ),
+      if (rule.doStatement != null && rule.doStatement!.trim().isNotEmpty)
+        Component.element(
+          children: [
+            Component.element(
+              children: const [Component.text('DO ')],
+              classes: 'do-keyword',
+              tag: 'strong',
+            ),
+            InlineCodeText(content: _stripLeadingDo(rule.doStatement!)),
+          ],
+          classes: 'do-guideline-paragraph',
+          tag: 'p',
+        ),
+      MarkdownContent(
         classes: 'rule-description-paragraph',
-        tag: 'p',
+        content: rule.description,
       ),
     ],
     classes: 'doc-section',
@@ -356,19 +370,55 @@ class const LintDetailPage({
               classes: 'meta-pill status-muted',
               tag: 'span',
             ),
+          for (final tag in rule.tags)
+            Component.element(
+              attributes: {
+                'href':
+                    '${rootPrefix}index.html?tag=${Uri.encodeComponent(tag)}#all-linter-rules',
+                'title': 'Filter rules by tag: $tag',
+              },
+              children: [Component.text('#$tag')],
+              classes: 'meta-pill badge-tag',
+              tag: 'a',
+            ),
         ],
         classes: 'rule-meta-bar',
         tag: 'div',
       ),
-      Component.element(
-        children: [InlineCodeText(content: rule.doStatement)],
-        classes: 'page-lead',
-        tag: 'p',
-      ),
+      if ((rule.doStatement != null && rule.doStatement!.trim().isNotEmpty) ||
+          (rule.avoidStatement != null &&
+              rule.avoidStatement!.trim().isNotEmpty))
+        Component.element(
+          children: [
+            InlineCodeText(
+              content:
+                  (rule.doStatement != null &&
+                      rule.doStatement!.trim().isNotEmpty)
+                  ? rule.doStatement!
+                  : rule.avoidStatement!,
+            ),
+          ],
+          classes: 'page-lead',
+          tag: 'p',
+        ),
     ],
     classes: 'hero-header rule-hero-header',
     tag: 'header',
   );
+
+  String _stripLeadingAvoid(String text) {
+    final trimmed = text.trim();
+    if (trimmed.toLowerCase().startsWith('avoid ')) {
+      final remainder = trimmed.substring(6).trimLeft();
+      if (remainder.isNotEmpty) {
+        return remainder[0].toLowerCase() + remainder.substring(1);
+      }
+    }
+    if (trimmed.isNotEmpty) {
+      return trimmed[0].toLowerCase() + trimmed.substring(1);
+    }
+    return trimmed;
+  }
 
   String _stripLeadingDo(String text) {
     final trimmed = text.trim();

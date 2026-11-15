@@ -4,10 +4,7 @@ import 'dart:io';
 import 'package:jaspr_lint_builder_example/build.dart';
 
 Future<void> main(List<String> args) async {
-  final server = await runExampleServeCli(args);
-  if (server == null) {
-    return;
-  }
+  await runExampleServeCli(args);
 
   final shutdownCompleter = Completer<void>();
   StreamSubscription<ProcessSignal>? sigintSub;
@@ -17,10 +14,7 @@ Future<void> main(List<String> args) async {
     stdout.writeln('\nReceived $signal, shutting down server...');
     await sigintSub?.cancel();
     await sigtermSub?.cancel();
-    await server.close(force: true);
-    if (!shutdownCompleter.isCompleted) {
-      shutdownCompleter.complete();
-    }
+    shutdownCompleter.complete();
   }
 
   sigintSub = ProcessSignal.sigint.watch().listen(handleSignal);
@@ -29,4 +23,5 @@ Future<void> main(List<String> args) async {
   }
 
   await shutdownCompleter.future;
+  exit(0);
 }

@@ -103,6 +103,7 @@ String buildSiteScript() => r'''
   function initRuleFilter() {
     var searchInput = document.getElementById('lint-search-input');
     var filterChips = document.querySelectorAll('.filter-chip');
+    var cardTagBtns = document.querySelectorAll('[data-tag-select]');
     var cards = document.querySelectorAll('#lint-cards-container .rule-card');
     var statusEl = document.getElementById('rules-count-status');
     var emptyEl = document.getElementById('empty-search-state');
@@ -111,6 +112,30 @@ String buildSiteScript() => r'''
 
     var activeFilter = 'all';
 
+    function syncActiveChipUi() {
+      filterChips.forEach(function (chip) {
+        var chipFilter = chip.getAttribute('data-filter') || 'all';
+        if (chipFilter === activeFilter) {
+          chip.classList.add('active');
+        } else {
+          chip.classList.remove('active');
+        }
+      });
+
+      var activeTag =
+        activeFilter.indexOf('tag:') === 0
+          ? activeFilter.substring(4).toLowerCase()
+          : '';
+      cardTagBtns.forEach(function (btn) {
+        var btnTag = (btn.getAttribute('data-tag-select') || '').toLowerCase();
+        if (activeTag && btnTag === activeTag) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
     function updateFilter() {
       var query = searchInput ? searchInput.value.trim().toLowerCase() : '';
       var visibleCount = 0;
@@ -118,8 +143,22 @@ String buildSiteScript() => r'''
       cards.forEach(function (card) {
         var searchText = (card.getAttribute('data-search-text') || '').toLowerCase();
         var hasQuickFix = card.getAttribute('data-quick-fix') === 'true';
+        var cardTags = (card.getAttribute('data-tags') || '')
+          .split(',')
+          .map(function (t) {
+            return t.trim().toLowerCase();
+          })
+          .filter(Boolean);
         var matchesQuery = !query || searchText.indexOf(query) !== -1;
-        var matchesChip = activeFilter === 'all' || (activeFilter === 'quick-fix' && hasQuickFix);
+        var matchesChip = false;
+        if (activeFilter === 'all') {
+          matchesChip = true;
+        } else if (activeFilter === 'quick-fix') {
+          matchesChip = hasQuickFix;
+        } else if (activeFilter.indexOf('tag:') === 0) {
+          var targetTag = activeFilter.substring(4).toLowerCase();
+          matchesChip = cardTags.indexOf(targetTag) !== -1;
+        }
 
         if (matchesQuery && matchesChip) {
           card.removeAttribute('hidden');
@@ -142,20 +181,47 @@ String buildSiteScript() => r'''
       }
     }
 
+    function setActiveFilter(nextFilter) {
+      activeFilter = nextFilter || 'all';
+      syncActiveChipUi();
+      updateFilter();
+    }
+
     if (searchInput) {
       searchInput.addEventListener('input', updateFilter);
     }
 
     filterChips.forEach(function (chip) {
       chip.addEventListener('click', function () {
-        filterChips.forEach(function (c) {
-          c.classList.remove('active');
-        });
-        chip.classList.add('active');
-        activeFilter = chip.getAttribute('data-filter') || 'all';
-        updateFilter();
+        var clickedFilter = chip.getAttribute('data-filter') || 'all';
+        if (clickedFilter !== 'all' && activeFilter === clickedFilter) {
+          setActiveFilter('all');
+        } else {
+          setActiveFilter(clickedFilter);
+        }
       });
     });
+
+    cardTagBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var tag = (btn.getAttribute('data-tag-select') || '').trim().toLowerCase();
+        if (!tag) return;
+        var targetFilter = 'tag:' + tag;
+        if (activeFilter === targetFilter) {
+          setActiveFilter('all');
+        } else {
+          setActiveFilter(targetFilter);
+        }
+      });
+    });
+
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var urlTag = params.get('tag');
+      if (urlTag && urlTag.trim()) {
+        setActiveFilter('tag:' + urlTag.trim().toLowerCase());
+      }
+    } catch (_) {}
   }
 
   function escapeHtml(str) {
@@ -231,7 +297,11 @@ String buildSiteScript() => r'''
       var raw = block.textContent || '';
       block.setAttribute('data-raw-code', raw);
       var escaped = escapeHtml(raw);
-      if (block.classList.contains('language-yaml')) {
+      if (
+        block.classList.contains('language-yaml') ||
+        block.classList.contains('language-yml') ||
+        block.classList.contains('language-json')
+      ) {
         block.innerHTML = highlightYaml(escaped);
       } else if (block.classList.contains('language-dart')) {
         var dartHighlighted = escaped.replace(
@@ -246,6 +316,21 @@ String buildSiteScript() => r'''
           }
         );
         block.innerHTML = dartHighlighted;
+      } else if (
+        block.classList.contains('language-sh') ||
+        block.classList.contains('language-bash') ||
+        block.classList.contains('language-shell')
+      ) {
+        var shHighlighted = escaped.replace(
+          /(#.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\s--?[A-Za-z0-9_-]+)/gm,
+          function (match, comment, str, flag) {
+            if (comment) return formatComment(comment);
+            if (str) return '<span class="tok-str">' + str + '</span>';
+            if (flag) return '<span class="tok-key">' + flag + '</span>';
+            return match;
+          }
+        );
+        block.innerHTML = shHighlighted;
       }
     });
   }

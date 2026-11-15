@@ -10,6 +10,15 @@ properties:
   title:
     type: string
     description: The title to display on the rendered on the page for these lints.
+  description:
+    type: string
+    description: The description of the lints the pages are built for.
+  package:
+    type: string
+    description: The name of the package to place in the docs.
+  version:
+    type: string
+    description: The version to recommend in the docs that users load.
   lints:
     type: array
     items:
@@ -21,7 +30,6 @@ $defs:
     required:
       - name
       - description
-      - do
       - bad
       - good
       - enable
@@ -30,6 +38,19 @@ $defs:
       name:
         type: string
         example: valid_json_serializable
+      description:
+        type: string
+        description: Detailed explanation of what the lint checks and why.
+      tags:
+        type: array
+        description: >-
+          Tags to apply to the lint.  It is recommended, but not required, to
+          have at least one tag for each lint.
+        items:
+          type: string
+      avoid:
+        type: string
+        example: A short one line statement explaining what the developer should be avoiding.
       do:
         type: string
         example: A short one line statement explaining what the developer should be doing.

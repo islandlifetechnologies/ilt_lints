@@ -18,6 +18,11 @@ Future<void> main(List<String> args) async {
         ruleFactory: PreferConstConstructors.new,
       ),
       RuleFixEntry(
+        fixGenerator: PreferNamedParametersFix.new,
+        name: PreferNamedParameters.code.lowerCaseName,
+        ruleFactory: PreferNamedParameters.new,
+      ),
+      RuleFixEntry(
         fixGenerator: PreferPrimaryConstructorsFix.new,
         name: PreferPrimaryConstructors.code.lowerCaseName,
         ruleFactory: PreferPrimaryConstructors.new,

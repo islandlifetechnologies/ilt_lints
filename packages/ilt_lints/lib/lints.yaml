@@ -5,6 +5,7 @@ plugins:
     version: ^2.0.0
     diagnostics:
       prefer_const_constructors: true
+      prefer_named_parameters: true
       prefer_primary_constructors: true
       sort_fields: true
       sort_functions_alphabetically: true

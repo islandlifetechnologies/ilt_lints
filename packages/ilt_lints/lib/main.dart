@@ -3,6 +3,7 @@ import 'package:analysis_server_plugin/registry.dart';
 
 import 'src/fixes/export_library_fix.dart';
 import 'src/fixes/prefer_const_constructors_fix.dart';
+import 'src/fixes/prefer_named_parameters_fix.dart';
 import 'src/fixes/prefer_primary_constructors_fix.dart';
 import 'src/fixes/sort_fields_fix.dart';
 import 'src/fixes/sort_functions_alphabetically_fix.dart';
@@ -11,8 +12,10 @@ import 'src/fixes/sort_named_parameters_fix.dart';
 import 'src/fixes/use_clock_fix.dart';
 import 'src/fixes/use_file_system_fix.dart';
 import 'src/fixes/valid_json_serializable_fix.dart';
+import 'src/rules/avoid_large_ccn.dart';
 import 'src/rules/export_library.dart';
 import 'src/rules/prefer_const_constructors.dart';
+import 'src/rules/prefer_named_parameters.dart';
 import 'src/rules/prefer_primary_constructors.dart';
 import 'src/rules/sort_fields.dart';
 import 'src/rules/sort_functions_alphabetically.dart';
@@ -32,12 +35,18 @@ class IltLintsPlugin extends Plugin {
 
   @override
   void register(PluginRegistry registry) {
+    registry.registerLintRule(AvoidLargeCcn());
     registry.registerLintRule(ExportLibrary());
     registry.registerFixForRule(ExportLibrary.code, ExportLibraryFix.new);
     registry.registerLintRule(PreferConstConstructors());
     registry.registerFixForRule(
       PreferConstConstructors.code,
       PreferConstConstructorsFix.new,
+    );
+    registry.registerLintRule(PreferNamedParameters());
+    registry.registerFixForRule(
+      PreferNamedParameters.code,
+      PreferNamedParametersFix.new,
     );
     registry.registerLintRule(PreferPrimaryConstructors());
     registry.registerFixForRule(

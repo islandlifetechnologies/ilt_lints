@@ -1,3 +1,9 @@
+## 2.1.0
+
+- Added the following rules:
+  - `avoid_large_ccn` -- not enabled by default in the published lint set.
+  - `prefer_named_parameters` -- Prefer using named parameters when the count exceeds a given number.
+
 ## 2.0.4
 
 - Updated README to point to documentation

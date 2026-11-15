@@ -3,15 +3,19 @@ import 'package:jaspr/jaspr.dart';
 
 import '../models/custom_lint_config.dart';
 import 'inline_code_text.dart';
+import 'markdown_content.dart';
 import 'site_layout.dart';
 
 /// Renders the main Linter Rules directory page modeled after
 /// `https://dart.dev/tools/linter-rules`.
 class const LintIndexPage({
   super.key,
+  final String package = 'ilt_lints',
   required final String rootPrefix,
   required final List<CustomLintRule> rules,
+  final String? siteDescription,
   required final String siteTitle,
+  final String version = '^2.0.0',
 }) extends StatelessComponent {
   static const _copyIconSvg =
       '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" '
@@ -51,7 +55,7 @@ class const LintIndexPage({
         children: [
           _buildHeroSection(quickFixCount),
           _buildOverviewSection(),
-          _buildEnablingSection(),
+          _buildEnablingSection(package: package, version: version),
           _buildRulesListSection(quickFixCount),
         ],
         classes: 'index-page-content',
@@ -63,11 +67,14 @@ class const LintIndexPage({
     );
   }
 
-  Component _buildEnablingSection() {
+  Component _buildEnablingSection({
+    required String package,
+    required String version,
+  }) {
     final sampleRulesYaml = [
       'plugins:',
-      '  ilt_lints:',
-      '    version: ^2.0.0',
+      '  $package:',
+      '    version: $version',
       '    diagnostics:',
       for (final rule in rules) '      ${rule.name}: true',
     ].join('\n');
@@ -135,47 +142,46 @@ class const LintIndexPage({
     );
   }
 
-  Component _buildHeroSection(int quickFixCount) => Component.element(
-    children: [
-      Component.element(
-        children: const [Component.text('Linter rules')],
-        classes: 'page-title',
-        tag: 'h1',
-      ),
-      Component.element(
-        children: const [
-          Component.text(
-            'Enforce consistent style, catch potential bugs early, and keep '
-            'your Dart codebase maintainable with automated lint rules and '
-            'quick fixes.',
-          ),
-        ],
-        classes: 'page-lead',
-        tag: 'p',
-      ),
-      Component.element(
-        children: [
-          Component.element(
-            children: [Component.text('${rules.length} Total Rules')],
-            classes: 'meta-pill status-stable',
-            tag: 'span',
-          ),
-          Component.element(
-            children: [
-              const RawText(_fixWrenchSvg),
-              Component.text(' $quickFixCount with Quick Fix'),
-            ],
-            classes: 'meta-pill status-fix',
-            tag: 'span',
-          ),
-        ],
-        classes: 'rule-meta-bar',
-        tag: 'div',
-      ),
-    ],
-    classes: 'hero-header',
-    tag: 'header',
-  );
+  Component _buildHeroSection(int quickFixCount) {
+    final resolvedDescription =
+        (siteDescription != null && siteDescription!.trim().isNotEmpty)
+        ? siteDescription!.trim()
+        : 'Enforce consistent style, catch potential bugs early, and keep '
+              'your Dart codebase maintainable with automated lint rules and '
+              'quick fixes.';
+
+    return Component.element(
+      children: [
+        Component.element(
+          children: const [Component.text('Linter rules')],
+          classes: 'page-title',
+          tag: 'h1',
+        ),
+        MarkdownContent(classes: 'page-lead', content: resolvedDescription),
+        Component.element(
+          children: [
+            Component.element(
+              children: [Component.text('${rules.length} Total Rules')],
+              classes: 'meta-pill status-stable',
+              tag: 'span',
+            ),
+            Component.element(
+              children: [
+                const RawText(_fixWrenchSvg),
+                Component.text(' $quickFixCount with Quick Fix'),
+              ],
+              classes: 'meta-pill status-fix',
+              tag: 'span',
+            ),
+          ],
+          classes: 'rule-meta-bar',
+          tag: 'div',
+        ),
+      ],
+      classes: 'hero-header',
+      tag: 'header',
+    );
+  }
 
   Component _buildOverviewSection() => Component.element(
     children: [
@@ -220,14 +226,22 @@ class const LintIndexPage({
 
   Component _buildRuleCard(CustomLintRule rule) {
     final detailHref = '${rootPrefix}linter-rules/${rule.name}.html';
-    final searchText = '${rule.name} ${rule.doStatement} ${rule.description}'
-        .toLowerCase();
+    final normalizedTags = rule.tags
+        .map((t) => t.trim().toLowerCase())
+        .where((t) => t.isNotEmpty)
+        .toList();
+    final searchText =
+        '${rule.name} ${rule.avoidStatement ?? ''} ${rule.doStatement ?? ''} '
+                '${MarkdownContent.stripMarkdown(rule.description)} '
+                '${rule.tags.join(' ')}'
+            .toLowerCase();
 
     return Component.element(
       attributes: {
         'data-quick-fix': rule.quickFix ? 'true' : 'false',
         'data-rule-name': rule.name,
         'data-search-text': searchText,
+        'data-tags': normalizedTags.join(','),
       },
       children: [
         Component.element(
@@ -263,6 +277,18 @@ class const LintIndexPage({
             ),
             Component.element(
               children: [
+                for (final tag in rule.tags)
+                  Component.element(
+                    attributes: {
+                      'aria-label': 'Filter by tag $tag',
+                      'data-tag-select': tag.toLowerCase(),
+                      'title': 'Filter by tag: $tag',
+                      'type': 'button',
+                    },
+                    children: [Component.text('#$tag')],
+                    classes: 'badge badge-tag',
+                    tag: 'button',
+                  ),
                 if (rule.quickFix)
                   Component.element(
                     attributes: const {'title': 'Has an automated quick fix'},
@@ -287,22 +313,36 @@ class const LintIndexPage({
           classes: 'rule-card-header',
           tag: 'div',
         ),
-        Component.element(
-          children: [
-            Component.element(
-              children: const [Component.text('DO ')],
-              classes: 'do-prefix',
-              tag: 'strong',
-            ),
-            InlineCodeText(content: _stripLeadingDo(rule.doStatement)),
-          ],
-          classes: 'rule-card-do',
-          tag: 'p',
-        ),
-        Component.element(
-          children: [InlineCodeText(content: rule.description)],
+        if (rule.avoidStatement != null &&
+            rule.avoidStatement!.trim().isNotEmpty)
+          Component.element(
+            children: [
+              Component.element(
+                children: const [Component.text('AVOID ')],
+                classes: 'avoid-prefix',
+                tag: 'strong',
+              ),
+              InlineCodeText(content: _stripLeadingAvoid(rule.avoidStatement!)),
+            ],
+            classes: 'rule-card-avoid',
+            tag: 'p',
+          ),
+        if (rule.doStatement != null && rule.doStatement!.trim().isNotEmpty)
+          Component.element(
+            children: [
+              Component.element(
+                children: const [Component.text('DO ')],
+                classes: 'do-prefix',
+                tag: 'strong',
+              ),
+              InlineCodeText(content: _stripLeadingDo(rule.doStatement!)),
+            ],
+            classes: 'rule-card-do',
+            tag: 'p',
+          ),
+        MarkdownContent(
           classes: 'rule-card-description',
-          tag: 'p',
+          content: rule.description,
         ),
       ],
       classes: 'rule-card',
@@ -311,87 +351,119 @@ class const LintIndexPage({
     );
   }
 
-  Component _buildRulesListSection(int quickFixCount) => Component.element(
-    children: [
-      Component.element(
-        children: const [Component.text('All linter rules')],
-        id: 'all-linter-rules',
-        tag: 'h2',
-      ),
-      Component.element(
-        children: [
-          Component.element(
-            children: [
-              Component.element(
-                attributes: const {
-                  'aria-label': 'Filter linter rules by name or description',
-                  'autocomplete': 'off',
-                  'placeholder': 'Filter rules by name or keyword...',
-                  'type': 'search',
-                },
-                classes: 'search-input',
-                id: 'lint-search-input',
-                tag: 'input',
-              ),
-            ],
-            classes: 'search-box-wrapper',
-            tag: 'div',
-          ),
-          Component.element(
-            children: [
-              Component.element(
-                attributes: const {'data-filter': 'all', 'type': 'button'},
-                children: [Component.text('All (${rules.length})')],
-                classes: 'filter-chip active',
-                tag: 'button',
-              ),
-              Component.element(
-                attributes: const {
-                  'data-filter': 'quick-fix',
-                  'type': 'button',
-                },
-                children: [
-                  const RawText(_fixWrenchSvg),
-                  Component.text(' Fix available ($quickFixCount)'),
-                ],
-                classes: 'filter-chip',
-                tag: 'button',
-              ),
-            ],
-            classes: 'filter-chips',
-            tag: 'div',
-          ),
-        ],
-        classes: 'rules-toolbar',
-        tag: 'div',
-      ),
-      Component.element(
-        children: [
-          Component.text('Showing ${rules.length} of ${rules.length} rules'),
-        ],
-        classes: 'rules-count-status',
-        id: 'rules-count-status',
-        tag: 'div',
-      ),
-      Component.element(
-        children: [for (final rule in rules) _buildRuleCard(rule)],
-        classes: 'rule-cards-grid',
-        id: 'lint-cards-container',
-        tag: 'div',
-      ),
-      Component.element(
-        attributes: const {'hidden': 'hidden'},
-        children: const [
-          Component.text('No linter rules match your current search filter.'),
-        ],
-        classes: 'empty-search-state',
-        id: 'empty-search-state',
-        tag: 'div',
-      ),
-    ],
-    classes: 'doc-section',
-    tag: 'section',
-  );
+  Component _buildRulesListSection(int quickFixCount) {
+    final tagCounts = <String, int>{};
+    for (final rule in rules) {
+      for (final rawTag in rule.tags) {
+        final tag = rawTag.trim();
+        if (tag.isNotEmpty) {
+          tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
+        }
+      }
+    }
+    final sortedTags = tagCounts.keys.toList()..sort();
+
+    return Component.element(
+      children: [
+        Component.element(
+          children: const [Component.text('All linter rules')],
+          id: 'all-linter-rules',
+          tag: 'h2',
+        ),
+        Component.element(
+          children: [
+            Component.element(
+              children: [
+                Component.element(
+                  attributes: const {
+                    'aria-label': 'Filter linter rules by name or description',
+                    'autocomplete': 'off',
+                    'placeholder': 'Filter rules by name, tag, or keyword...',
+                    'type': 'search',
+                  },
+                  classes: 'search-input',
+                  id: 'lint-search-input',
+                  tag: 'input',
+                ),
+              ],
+              classes: 'search-box-wrapper',
+              tag: 'div',
+            ),
+            Component.element(
+              children: [
+                Component.element(
+                  attributes: const {'data-filter': 'all', 'type': 'button'},
+                  children: [Component.text('All (${rules.length})')],
+                  classes: 'filter-chip active',
+                  tag: 'button',
+                ),
+                Component.element(
+                  attributes: const {
+                    'data-filter': 'quick-fix',
+                    'type': 'button',
+                  },
+                  children: [
+                    const RawText(_fixWrenchSvg),
+                    Component.text(' Fix available ($quickFixCount)'),
+                  ],
+                  classes: 'filter-chip',
+                  tag: 'button',
+                ),
+                for (final tag in sortedTags)
+                  Component.element(
+                    attributes: {
+                      'data-filter': 'tag:${tag.toLowerCase()}',
+                      'data-tag': tag.toLowerCase(),
+                      'type': 'button',
+                    },
+                    children: [Component.text('#$tag (${tagCounts[tag]})')],
+                    classes: 'filter-chip filter-chip-tag',
+                    tag: 'button',
+                  ),
+              ],
+              classes: 'filter-chips',
+              tag: 'div',
+            ),
+          ],
+          classes: 'rules-toolbar',
+          tag: 'div',
+        ),
+        Component.element(
+          children: [
+            Component.text('Showing ${rules.length} of ${rules.length} rules'),
+          ],
+          classes: 'rules-count-status',
+          id: 'rules-count-status',
+          tag: 'div',
+        ),
+        Component.element(
+          children: [for (final rule in rules) _buildRuleCard(rule)],
+          classes: 'rule-cards-grid',
+          id: 'lint-cards-container',
+          tag: 'div',
+        ),
+        Component.element(
+          attributes: const {'hidden': 'hidden'},
+          children: const [
+            Component.text('No linter rules match your current search filter.'),
+          ],
+          classes: 'empty-search-state',
+          id: 'empty-search-state',
+          tag: 'div',
+        ),
+      ],
+      classes: 'doc-section',
+      tag: 'section',
+    );
+  }
+
+  String _stripLeadingAvoid(String text) {
+    final trimmed = text.trim();
+    if (trimmed.toLowerCase().startsWith('avoid ')) {
+      return trimmed.substring(6);
+    }
+    return trimmed;
+  }
 
   String _stripLeadingDo(String text) {
     final trimmed = text.trim();

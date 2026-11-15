@@ -12,6 +12,7 @@ import 'assets/site_script.dart';
 import 'assets/site_styles.dart';
 import 'components/lint_detail_page.dart';
 import 'components/lint_index_page.dart';
+import 'components/markdown_content.dart';
 import 'favicon_generator.dart';
 import 'lint_schema_validator.dart';
 import 'models/custom_lint_config.dart';
@@ -143,8 +144,11 @@ class const JasprLintSiteBuilder({
     }
 
     final generatedFiles = <String>[];
+    final packageName = document.packageName ?? 'ilt_lints';
     final rules = document.lints;
+    final siteDescription = document.description;
     final siteTitle = document.title;
+    final version = document.version ?? '^2.0.0';
     final resolvedFaviconPath = faviconFilePath ?? this.faviconFilePath;
     final hasFavicons = resolvedFaviconPath != null;
 
@@ -173,17 +177,23 @@ class const JasprLintSiteBuilder({
 
     final rootIndexHtml = await renderIndexPageHtml(
       includeFavicons: hasFavicons,
+      package: packageName,
       rootPrefix: '',
       rules: rules,
+      siteDescription: siteDescription,
       siteTitle: siteTitle,
+      version: version,
     );
     await writeSiteFile('index.html', rootIndexHtml);
 
     final subIndexHtml = await renderIndexPageHtml(
       includeFavicons: hasFavicons,
+      package: packageName,
       rootPrefix: '../',
       rules: rules,
+      siteDescription: siteDescription,
       siteTitle: siteTitle,
+      version: version,
     );
     await writeSiteFile(p.join('linter-rules', 'index.html'), subIndexHtml);
 
@@ -222,6 +232,7 @@ class const JasprLintSiteBuilder({
     }
 
     return LintSiteBuildResult(
+      description: siteDescription,
       generatedFiles: List<String>.unmodifiable(generatedFiles),
       outputDirectoryPath: outputDir.path,
       rules: rules,
@@ -270,19 +281,28 @@ class const JasprLintSiteBuilder({
   /// Renders the main Linter Rules index page into an HTML string using Jaspr.
   Future<String> renderIndexPageHtml({
     bool includeFavicons = false,
+    String package = 'ilt_lints',
     String rootPrefix = '',
     required List<CustomLintRule> rules,
+    String? siteDescription,
     required String siteTitle,
+    String version = '^2.0.0',
   }) async {
     _ensureJasprInitialized();
+    final metaDescription =
+        (siteDescription != null && siteDescription.trim().isNotEmpty)
+        ? MarkdownContent.stripMarkdown(siteDescription.trim())
+        : 'All custom Dart linter rules and quick fixes for $siteTitle.';
     final document = _buildDocumentShell(
       body: LintIndexPage(
+        package: package,
         rootPrefix: rootPrefix,
         rules: rules,
+        siteDescription: siteDescription,
         siteTitle: siteTitle,
+        version: version,
       ),
-      description:
-          'All custom Dart linter rules and quick fixes for $siteTitle.',
+      description: metaDescription,
       includeFavicons: includeFavicons,
       rootPrefix: rootPrefix,
       title: 'Linter rules | $siteTitle',
@@ -303,6 +323,10 @@ class const JasprLintSiteBuilder({
     required String siteTitle,
   }) async {
     _ensureJasprInitialized();
+    final summary =
+        rule.doStatement ??
+        rule.avoidStatement ??
+        MarkdownContent.stripMarkdown(rule.description);
     final document = _buildDocumentShell(
       body: LintDetailPage(
         nextRule: nextRule,
@@ -312,7 +336,7 @@ class const JasprLintSiteBuilder({
         rules: rules,
         siteTitle: siteTitle,
       ),
-      description: '${rule.name}: ${rule.doStatement}',
+      description: '${rule.name}: $summary',
       includeFavicons: includeFavicons,
       rootPrefix: rootPrefix,
       title: '${rule.name} | Linter rules | $siteTitle',

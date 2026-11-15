@@ -13,8 +13,10 @@ plugins:
   ilt_lints:
     version: ^2.0.0
     diagnostics:
+      avoid_large_ccn: true
       export_library: true
       prefer_const_constructors: true
+      prefer_named_parameters: true
       prefer_primary_constructors: true
       sort_fields: true
       sort_functions_by_scope: true
@@ -24,6 +26,10 @@ plugins:
       use_file_system: true
       valid_json_serializable: true
 
+# Optional; configuration values for the avoid_large_ccn rule
+avoid_large_ccn:
+  ccn: 20
+
 # Optional; configuration values for the export_library rule
 export_library:
   - exporter: lib/my_package.dart
@@ -32,6 +38,10 @@ export_library:
     exclude:
       - "**/g.dart"
       - "**/freezed.dart"
+
+# Optional; configuration values for the prefer_named_parameters rule
+prefer_named_parameters:
+  count: 2
 
 # Optional; configuration values for the sort_fields rule
 sort_fields:
@@ -68,6 +78,17 @@ dart run ilt_lints:fix --dry-run lib/
 
 ## Custom Lint Rules
 
+### `avoid_large_ccn`
+
+Calculates the [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) number (CCN) for every function, method, and constructor and triggers when the complexity exceeds the configured `ccn` threshold (defaults to `20`).
+
+Supports a custom `ccn` option in `analysis_options.yaml` (defaults to `20`):
+
+```yaml
+avoid_large_ccn:
+  ccn: 20
+```
+
 ### `export_library`
 
 Ensures all files matching any `include` glob (and not matching any optional `exclude` glob) for a configured `exporter` file are exported by that exporter. If a file overlaps `include` and `exclude`, `exclude` wins.
@@ -97,6 +118,19 @@ Includes an automated quick fix (`Export missing library files`).
 Detects classes whose constructor (primary constructor or generative constructor) can be marked `const` without any other changes and flags them if not already marked `const`.
 
 Includes an automated quick fix (`Add const modifier to constructor`) that adds `const` to the primary constructor (`class const Foo(...)`) or generative constructor (`const Foo(...);`).
+
+### `prefer_named_parameters`
+
+Triggers when a function, method, or constructor declares more than `count` positional parameters (defaults to `2`).
+
+Supports a custom `count` option in `analysis_options.yaml` (defaults to `2`):
+
+```yaml
+prefer_named_parameters:
+  count: 2
+```
+
+Includes an automated quick fix (`Convert to named parameters`) that converts all parameters in the function, method, or constructor to named parameters.
 
 ### `prefer_primary_constructors`
 
