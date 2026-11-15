@@ -1,0 +1,25 @@
+name: ilt_lints
+description: Lints for ILT repos
+repository: https://github.com/islandlifetechnologies/ilt_lints
+version: 2.0.2
+
+environment:
+  sdk: ^3.13.0
+
+resolution: workspace
+
+dependencies:
+  analysis_server_plugin: ^0.3.26
+  analyzer: ^14.7.0
+  analyzer_plugin: ^0.14.20
+  flutter_lints: ^6.0.0
+  glob: ^2.2.0
+  path: ^1.9.1
+  quick_fix: ^1.0.0
+  yaml: ^3.1.4
+
+dev_dependencies:
+  analyzer_testing: ^0.4.5
+  jaspr_lint_builder: ^1.0.0
+  test: ^1.33.0
+  test_reflective_loader: ^0.6.0

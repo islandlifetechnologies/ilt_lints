@@ -1,6 +1,4 @@
 export 'main.dart' show IltLintsPlugin, plugin;
-export 'src/fix_runner.dart'
-    show FileFixResult, FixRunner, FixRunResult, runFixCli;
 export 'src/fixes/export_library_fix.dart' show ExportLibraryFix;
 export 'src/fixes/prefer_const_constructors_fix.dart'
     show PreferConstConstructorsFix;

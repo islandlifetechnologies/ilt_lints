@@ -1,0 +1,37 @@
+name: jaspr_lint_builder_example
+description: Example for the jaspr_lint_builder package.
+repository: https://github.com/islandlifetechnologies/ilt_lints
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+
+executables:
+  jaspr_lint_builder: build
+  serve: serve
+
+dependencies:
+  args: ^2.7.0
+  file: ^7.0.1
+  jaspr: ^0.23.0
+  jaspr_lint_builder:
+    path: ../
+  meta: ^1.19.0
+  path: ^1.9.1
+  shelf: ^1.4.3
+  shelf_static: ^1.2.0
+  yaml: ^3.1.4
+
+dev_dependencies:
+  ilt_lints:
+    path: ../../ilt_lints
+  quick_fix:
+    path: ../../quick_fix
+  test: ^1.33.0
+
+dependency_overrides:
+  ilt_lints:
+    path: ../../ilt_lints
+  quick_fix:
+    path: ../../quick_fix

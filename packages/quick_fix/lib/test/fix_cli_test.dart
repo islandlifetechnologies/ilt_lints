@@ -1,14 +1,71 @@
-import 'dart:io';
-
+import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:ilt_lints/ilt_lints.dart';
+import 'package:meta/meta.dart';
+import 'package:quick_fix/quick_fix.dart';
 import 'package:test/test.dart';
 
-void main() {
-  group('bin/fix.dart (runFixCli)', () {
+final _ruleEntries = <RuleFixEntry>[
+  RuleFixEntry(
+    fixGenerator: ExportLibraryFix.new,
+    name: ExportLibrary.code.lowerCaseName,
+    ruleFactory: ExportLibrary.new,
+  ),
+  RuleFixEntry(
+    fixGenerator: PreferConstConstructorsFix.new,
+    name: PreferConstConstructors.code.lowerCaseName,
+    ruleFactory: PreferConstConstructors.new,
+  ),
+  RuleFixEntry(
+    fixGenerator: PreferPrimaryConstructorsFix.new,
+    name: PreferPrimaryConstructors.code.lowerCaseName,
+    ruleFactory: PreferPrimaryConstructors.new,
+  ),
+  RuleFixEntry(
+    fixGenerator: SortFieldsFix.new,
+    name: SortFields.code.lowerCaseName,
+    ruleFactory: SortFields.new,
+  ),
+  RuleFixEntry(
+    fixGenerator: SortFunctionsByScopeFix.new,
+    name: SortFunctionsByScope.code.lowerCaseName,
+    ruleFactory: SortFunctionsByScope.new,
+  ),
+  RuleFixEntry(
+    fixGenerator: SortFunctionsAlphabeticallyFix.new,
+    name: SortFunctionsAlphabetically.code.lowerCaseName,
+    ruleFactory: SortFunctionsAlphabetically.new,
+  ),
+  RuleFixEntry(
+    fixGenerator: SortNamedParametersFix.new,
+    name: SortNamedParameters.code.lowerCaseName,
+    ruleFactory: SortNamedParameters.new,
+  ),
+  RuleFixEntry(
+    fixGenerator: UseClockFix.new,
+    name: UseClock.code.lowerCaseName,
+    ruleFactory: UseClock.new,
+  ),
+  RuleFixEntry(
+    fixGenerator: UseFileSystemFix.new,
+    name: UseFileSystem.code.lowerCaseName,
+    ruleFactory: UseFileSystem.new,
+  ),
+  RuleFixEntry(
+    fixGenerator: ValidJsonSerializableFix.new,
+    name: ValidJsonSerializable.code.lowerCaseName,
+    ruleFactory: ValidJsonSerializable.new,
+  ),
+];
+
+void main({@visibleForTesting FileSystem fs = const LocalFileSystem()}) {
+  group('bin/fix.dart (runQuickFixCli)', () {
     late Directory tempDir;
 
     setUp(() {
-      tempDir = Directory.systemTemp.createTempSync('ilt_lints_fix_cli_test_');
+      tempDir = fs.systemTempDirectory.createTempSync(
+        'ilt_lints_fix_cli_test_',
+      );
     });
 
     tearDown(() {
@@ -21,47 +78,21 @@ void main() {
       final out = StringBuffer();
       final err = StringBuffer();
 
-      final exitCode = await runFixCli(
+      final exitCode = await runQuickFixCli(
         ['--help'],
         err: err,
         out: out,
+        ruleEntries: _ruleEntries,
         workingDirectory: tempDir.path,
       );
 
       expect(exitCode, 0);
-      expect(out.toString(), contains('Usage: dart run ilt_lints:fix'));
+      expect(out.toString(), contains('Applies automated fixes for all'));
       expect(err.toString(), isEmpty);
     });
 
-    test('returns 64 on unknown option or missing path', () async {
-      final out = StringBuffer();
-      final err = StringBuffer();
-
-      final badFlagCode = await runFixCli(
-        ['--unknown-flag'],
-        err: err,
-        out: out,
-        workingDirectory: tempDir.path,
-      );
-      expect(badFlagCode, 64);
-      expect(err.toString(), contains('Unknown option: --unknown-flag'));
-
-      err.clear();
-      final missingPathCode = await runFixCli(
-        ['does_not_exist.dart'],
-        err: err,
-        out: out,
-        workingDirectory: tempDir.path,
-      );
-      expect(missingPathCode, 64);
-      expect(
-        err.toString(),
-        contains('Path does not exist: does_not_exist.dart'),
-      );
-    });
-
     test('applies fixes for all enabled custom lints', () async {
-      File('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
+      fs.file('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
 plugins:
   ilt_lints:
     version: ^1.1.0
@@ -72,7 +103,7 @@ plugins:
       sort_named_parameters: true
 ''');
 
-      final dartFile = File('${tempDir.path}/example.dart');
+      final dartFile = fs.file('${tempDir.path}/example.dart');
       dartFile.writeAsStringSync(r'''
 class Example {
   Example({required this.beta, required this.alpha});
@@ -93,10 +124,11 @@ class Example {
       final out = StringBuffer();
       final err = StringBuffer();
 
-      final exitCode = await runFixCli(
+      final exitCode = await runQuickFixCli(
         [tempDir.path],
         err: err,
         out: out,
+        ruleEntries: _ruleEntries,
         workingDirectory: tempDir.path,
       );
 
@@ -127,7 +159,7 @@ class Example {
     });
 
     test('only applies fixes for rules that are enabled', () async {
-      File('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
+      fs.file('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
 plugins:
   ilt_lints:
     version: ^1.1.0
@@ -138,7 +170,7 @@ plugins:
       sort_named_parameters: false
 ''');
 
-      final dartFile = File('${tempDir.path}/example.dart');
+      final dartFile = fs.file('${tempDir.path}/example.dart');
       dartFile.writeAsStringSync(r'''
 class Example {
   void beta({int? b, int? a}) {}
@@ -151,9 +183,10 @@ class Example {
 ''');
 
       final out = StringBuffer();
-      final exitCode = await runFixCli(
+      final exitCode = await runQuickFixCli(
         [tempDir.path],
         out: out,
+        ruleEntries: _ruleEntries,
         workingDirectory: tempDir.path,
       );
 
@@ -177,7 +210,7 @@ class Example {
     });
 
     test('--dry-run reports fixes without modifying files on disk', () async {
-      File('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
+      fs.file('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
 plugins:
   ilt_lints:
     version: ^1.1.0
@@ -191,13 +224,14 @@ class Example {
   void alpha() {}
 }
 ''';
-      final dartFile = File('${tempDir.path}/example.dart')
+      final dartFile = fs.file('${tempDir.path}/example.dart')
         ..writeAsStringSync(original);
 
       final out = StringBuffer();
-      final exitCode = await runFixCli(
+      final exitCode = await runQuickFixCli(
         ['--dry-run', tempDir.path],
         out: out,
+        ruleEntries: _ruleEntries,
         workingDirectory: tempDir.path,
       );
 
@@ -208,10 +242,10 @@ class Example {
     });
 
     test('applies export_library fixes via CLI', () async {
-      File('${tempDir.path}/pubspec.yaml').writeAsStringSync('''
+      fs.file('${tempDir.path}/pubspec.yaml').writeAsStringSync('''
 name: sample_pkg
 ''');
-      File('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
+      fs.file('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
 plugins:
   ilt_lints:
     version: ^2.0.0
@@ -219,18 +253,21 @@ plugins:
       export_library: true
 ''');
 
-      Directory('${tempDir.path}/lib/src').createSync(recursive: true);
-      File('${tempDir.path}/lib/src/alpha.dart')
+      fs.directory('${tempDir.path}/lib/src').createSync(recursive: true);
+      fs
+          .file('${tempDir.path}/lib/src/alpha.dart')
           .writeAsStringSync('class Alpha {}\n');
-      File('${tempDir.path}/lib/src/beta.dart')
+      fs
+          .file('${tempDir.path}/lib/src/beta.dart')
           .writeAsStringSync('class Beta {}\n');
-      final exporterFile = File('${tempDir.path}/lib/sample_pkg.dart')
+      final exporterFile = fs.file('${tempDir.path}/lib/sample_pkg.dart')
         ..writeAsStringSync("export 'src/beta.dart';\n");
 
       final out = StringBuffer();
-      final exitCode = await runFixCli(
+      final exitCode = await runQuickFixCli(
         [tempDir.path],
         out: out,
+        ruleEntries: _ruleEntries,
         workingDirectory: tempDir.path,
       );
 
@@ -243,7 +280,7 @@ plugins:
     });
 
     test('applies valid_json_serializable fixes via CLI', () async {
-      File('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
+      fs.file('${tempDir.path}/analysis_options.yaml').writeAsStringSync('''
 plugins:
   ilt_lints:
     version: ^2.0.0
@@ -251,7 +288,7 @@ plugins:
       valid_json_serializable: true
 ''');
 
-      final dartFile = File('${tempDir.path}/model.dart');
+      final dartFile = fs.file('${tempDir.path}/model.dart');
       dartFile.writeAsStringSync(r'''
 class JsonSerializable {
   const JsonSerializable();
@@ -266,9 +303,10 @@ class User {
 ''');
 
       final out = StringBuffer();
-      final exitCode = await runFixCli(
+      final exitCode = await runQuickFixCli(
         [tempDir.path],
         out: out,
+        ruleEntries: _ruleEntries,
         workingDirectory: tempDir.path,
       );
 

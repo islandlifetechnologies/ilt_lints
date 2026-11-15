@@ -1,0 +1,65 @@
+name: Publish GitHub Pages
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  publish_gh_pages:
+    name: "Build & Publish Lint Docs"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Base
+        uses: actions/checkout@v7
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Install Dependencies
+        shell: bash
+        run: |
+          set -e
+          dart pub get
+
+      - name: Validate & Build Documentation Site
+        shell: bash
+        run: |
+          set -e
+          dart pub run jaspr_lint_builder:validate \
+            --input packages/ilt_lints/assets/lints.yaml
+          dart pub run jaspr_lint_builder:build \
+            --favicon packages/ilt_lints/assets/favicon.png \
+            --input packages/ilt_lints/assets/lints.yaml \
+            --output build/web
+
+      - name: Publish to gh_pages Orphan Branch
+        shell: bash
+        run: |
+          set -e
+
+          git config --global user.email "action@github.com"
+          git config --global user.name "Github Action"
+
+          SITE_DIR="$(mktemp -d)"
+          cp -R build/web/. "$SITE_DIR/"
+          touch "$SITE_DIR/.nojekyll"
+
+          git checkout --orphan gh_pages
+          git rm -rf .
+          git clean -fdx
+
+          cp -R "$SITE_DIR/." .
+          rm -rf "$SITE_DIR"
+
+          git add -A
+          git commit --allow-empty -m "Publish lint documentation site"
+          git push --force origin gh_pages

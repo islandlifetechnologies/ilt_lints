@@ -2,10 +2,14 @@ repos:
   - repo: https://github.com/islandlifetechnologies/gh_tools
     rev: v1.1.2
     hooks:
-      - id: pub-get
-      - id: build-runner
-      - id: format
-      - id: analyze
-      - id: test
-      - id: changelog-version
-      - id: branch-version
+      - id: scan-packages
+        name: scan-packages
+      - id: all
+        name: ilt_lints
+        args: [--path=packages/ilt_lints]
+      - id: all
+        name: jaspr_lint_builder
+        args: [--path=packages/jaspr_lint_builder]
+      - id: all
+        name: quick_fix
+        args: [--path=packages/quick_fix]

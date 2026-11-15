@@ -19,64 +19,54 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:args/args.dart';
+import 'package:quick_fix/quick_fix.dart';
 import 'package:yaml/yaml.dart';
 
-import 'fixes/export_library_fix.dart';
-import 'fixes/prefer_const_constructors_fix.dart';
-import 'fixes/prefer_primary_constructors_fix.dart';
-import 'fixes/sort_fields_fix.dart';
-import 'fixes/sort_functions_alphabetically_fix.dart';
-import 'fixes/sort_functions_by_scope_fix.dart';
-import 'fixes/sort_named_parameters_fix.dart';
-import 'fixes/use_clock_fix.dart';
-import 'fixes/use_file_system_fix.dart';
-import 'fixes/valid_json_serializable_fix.dart';
-import 'rules/export_library.dart';
-import 'rules/prefer_const_constructors.dart';
-import 'rules/prefer_primary_constructors.dart';
-import 'rules/sort_fields.dart';
-import 'rules/sort_functions_alphabetically.dart';
-import 'rules/sort_functions_by_scope.dart';
-import 'rules/sort_named_parameters.dart';
-import 'rules/use_clock.dart';
-import 'rules/use_file_system.dart';
-import 'rules/valid_json_serializable.dart';
-
-/// Runs the `ilt_lints` CLI fix tool with [args].
-Future<int> runFixCli(
+Future<int> runQuickFixCli(
   List<String> args, {
   StringSink? err,
   StringSink? out,
   ResourceProvider? resourceProvider,
+  required List<RuleFixEntry> ruleEntries,
   String? sdkPath,
   String? workingDirectory,
 }) async {
+  final parser = ArgParser()
+    ..addOption(
+      'max-iterations-per-rule',
+      defaultsTo: '50',
+      help: 'Maximum number of fixes runs to apply for any given rule',
+    )
+    ..addMultiOption(
+      'exclude',
+      abbr: 'e',
+      help: 'Exclude rule fix from being applied',
+    )
+    ..addMultiOption(
+      'path',
+      abbr: 'p',
+      defaultsTo: ['.'],
+      help: 'Paths to analyze',
+    )
+    ..addFlag('dry-run', abbr: 'n', help: 'Dry run mode')
+    ..addFlag('help', abbr: 'h', help: 'Show help');
+
+  final parsed = parser.parse(args);
+
   final stdoutSink = out ?? io.stdout;
   final stderrSink = err ?? io.stderr;
   final provider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
   final pathContext = provider.pathContext;
   final cwd = workingDirectory ?? pathContext.current;
 
-  var dryRun = false;
-  var showHelp = false;
-  final rawPaths = <String>[];
-
-  for (final arg in args) {
-    if (arg == '--help' || arg == '-h') {
-      showHelp = true;
-    } else if (arg == '--dry-run' || arg == '-n') {
-      dryRun = true;
-    } else if (arg.startsWith('-')) {
-      stderrSink.writeln('Unknown option: $arg');
-      _printUsage(stderrSink);
-      return 64;
-    } else {
-      rawPaths.add(arg);
-    }
-  }
+  final dryRun = parsed['dry-run'] == true;
+  final excluded = parsed['exclude'] as List<String>? ?? const [];
+  final showHelp = parsed['help'] == true;
+  final rawPaths = parsed['path'] as List<String>;
 
   if (showHelp) {
-    _printUsage(stdoutSink);
+    _printUsage(stdoutSink, parser.usage);
     return 0;
   }
 
@@ -102,7 +92,10 @@ Future<int> runFixCli(
 
   final runner = FixRunner(
     dryRun: dryRun,
+    maxIterationsPerRule:
+        int.tryParse(parsed['max-iterations-per-rule'] ?? '') ?? 50,
     resourceProvider: provider,
+    ruleEntries: ruleEntries.where((e) => !excluded.contains(e.name)),
     sdkPath: sdkPath,
   );
   final result = await runner.run(resolvedTargets);
@@ -141,116 +134,25 @@ Future<int> runFixCli(
   return 0;
 }
 
-void _printUsage(StringSink sink) {
-  sink.writeln('Usage: dart run ilt_lints:fix [options] [<paths>...]');
+void _printUsage(StringSink sink, String usage) {
+  sink.writeln('Applies automated fixes for all enabled custom rules.');
   sink.writeln();
-  sink.writeln(
-    'Applies automated fixes for all enabled custom ilt_lints rules.',
-  );
-  sink.writeln();
-  sink.writeln('Options:');
-  sink.writeln(
-    '  -n, --dry-run    Show which fixes would be applied without modifying files.',
-  );
-  sink.writeln('  -h, --help       Print this usage information.');
+  sink.writeln(usage);
 }
 
-/// Summary of fixes applied to a single file.
-class FileFixResult {
-  const FileFixResult({required this.filePath, required this.fixesByRule});
+/// Runs enabled custom rules and applies their fixes to Dart files.
+class FixRunner({
+  final bool dryRun = false,
+  final int _maxIterationsPerRule = 50,
+  ResourceProvider? resourceProvider,
+  required final Iterable<RuleFixEntry> _ruleEntries,
+  final String? sdkPath,
+}) {
+  this
+    : _resourceProvider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
-  final String filePath;
-  final Map<String, int> fixesByRule;
-
-  int get totalFixes => fixesByRule.values.fold(0, (sum, count) => sum + count);
-}
-
-/// Summary of fixes applied across a [FixRunner.run] invocation.
-class FixRunResult {
-  const FixRunResult({required this.fileResults});
-
-  final List<FileFixResult> fileResults;
-
-  int get totalFilesFixed => fileResults.length;
-
-  int get totalFixes =>
-      fileResults.fold(0, (sum, file) => sum + file.totalFixes);
-}
-
-/// Runs enabled custom `ilt_lints` rules and applies their fixes to Dart files.
-class FixRunner {
-  FixRunner({
-    this.dryRun = false,
-    ResourceProvider? resourceProvider,
-    this.sdkPath,
-  }) : _resourceProvider =
-           resourceProvider ?? PhysicalResourceProvider.INSTANCE;
-
-  static const _maxIterationsPerRule = 50;
-
-  static final _ruleEntries = [
-    _RuleFixEntry(
-      fixGenerator: ExportLibraryFix.new,
-      name: ExportLibrary.code.lowerCaseName,
-      ruleFactory: ExportLibrary.new,
-    ),
-    _RuleFixEntry(
-      fixGenerator: PreferConstConstructorsFix.new,
-      name: PreferConstConstructors.code.lowerCaseName,
-      ruleFactory: PreferConstConstructors.new,
-    ),
-    _RuleFixEntry(
-      fixGenerator: PreferPrimaryConstructorsFix.new,
-      name: PreferPrimaryConstructors.code.lowerCaseName,
-      ruleFactory: PreferPrimaryConstructors.new,
-    ),
-    _RuleFixEntry(
-      fixGenerator: SortFieldsFix.new,
-      name: SortFields.code.lowerCaseName,
-      ruleFactory: SortFields.new,
-    ),
-    _RuleFixEntry(
-      fixGenerator: SortFunctionsByScopeFix.new,
-      name: SortFunctionsByScope.code.lowerCaseName,
-      ruleFactory: SortFunctionsByScope.new,
-    ),
-    _RuleFixEntry(
-      fixGenerator: SortFunctionsAlphabeticallyFix.new,
-      name: SortFunctionsAlphabetically.code.lowerCaseName,
-      ruleFactory: SortFunctionsAlphabetically.new,
-    ),
-    _RuleFixEntry(
-      fixGenerator: SortNamedParametersFix.new,
-      name: SortNamedParameters.code.lowerCaseName,
-      ruleFactory: SortNamedParameters.new,
-    ),
-    _RuleFixEntry(
-      fixGenerator: UseClockFix.new,
-      name: UseClock.code.lowerCaseName,
-      ruleFactory: UseClock.new,
-    ),
-    _RuleFixEntry(
-      fixGenerator: UseFileSystemFix.new,
-      name: UseFileSystem.code.lowerCaseName,
-      ruleFactory: UseFileSystem.new,
-    ),
-    _RuleFixEntry(
-      fixGenerator: ValidJsonSerializableFix.new,
-      name: ValidJsonSerializable.code.lowerCaseName,
-      ruleFactory: ValidJsonSerializable.new,
-    ),
-  ];
-
-  final bool dryRun;
-  final String? sdkPath;
   final ResourceProvider _resourceProvider;
   var _overlayModificationStamp = 1;
-
-  static void _registerRulesInGlobalRegistry() {
-    for (final entry in _ruleEntries) {
-      Registry.ruleRegistry.registerLintRule(entry.ruleFactory());
-    }
-  }
 
   /// Analyzes [targetPaths] and applies fixes for all enabled custom lints.
   Future<FixRunResult> run(List<String> targetPaths) async {
@@ -435,7 +337,7 @@ class FixRunner {
         .toList();
   }
 
-  List<_RuleFixEntry> _enabledRulesForFile(
+  List<RuleFixEntry> _enabledRulesForFile(
     DriverBasedAnalysisContext context,
     File file,
   ) {
@@ -636,19 +538,10 @@ class FixRunner {
 
     return FileFixResult(filePath: filePath, fixesByRule: fixesByRule);
   }
-}
 
-class _RuleFixEntry {
-  const _RuleFixEntry({
-    required this.fixGenerator,
-    required this.name,
-    required this.ruleFactory,
-  });
-
-  final ResolvedCorrectionProducer Function({
-    required CorrectionProducerContext context,
-  })
-  fixGenerator;
-  final String name;
-  final AnalysisRule Function() ruleFactory;
+  void _registerRulesInGlobalRegistry() {
+    for (final entry in _ruleEntries) {
+      Registry.ruleRegistry.registerLintRule(entry.ruleFactory());
+    }
+  }
 }
