@@ -20,5 +20,6 @@ dependencies:
 
 dev_dependencies:
   analyzer_testing: ^0.4.5
+  jaspr_lint_builder: ^1.0.0
   test: ^1.33.0
   test_reflective_loader: ^0.6.0
