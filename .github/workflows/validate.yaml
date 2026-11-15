@@ -78,10 +78,11 @@ jobs:
 
       - name: Validate Lints Schema
         shell: bash
+        working-directory: "packages/${{ matrix.package }}"
         run: |
           set -e
 
-          if [ -f "packages/${{ matrix.package }}/assets/lints.yaml" ]; then
-            dart pub run jaspr_lint_builder:validate \
-              --input "packages/${{ matrix.package }}/assets/lints.yaml"
+          if [ -f "assets/lints.yaml" ]; then
+            dart run jaspr_lint_builder:validate \
+              --input "assets/lints.yaml"
           fi
