@@ -72,6 +72,7 @@ jobs:
         run: |
           set -e
 
+          dart pub global activate gh_tools
           dart_pre_commit --step=pub-get --path="packages/${{ matrix.package }}"
           dart_pre_commit --step=build-runner --path="packages/${{ matrix.package }}"
           dart_pre_commit --step=format-fail --path="packages/${{ matrix.package }}"
@@ -86,6 +87,7 @@ jobs:
           set -e
 
           if [ -f "assets/lints.yaml" ]; then
+            dart pub global activate gh_tools
             dart pub run jaspr_lint_builder:validate \
               --input "assets/lints.yaml"
           fi
