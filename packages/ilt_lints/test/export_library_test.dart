@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ExportLibraryTest extends AnalysisRuleTest {
+class ExportLibraryTest() extends AnalysisRuleTest {
   @override
   void setUp() {
     rule = ExportLibrary();

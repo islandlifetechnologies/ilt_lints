@@ -138,7 +138,6 @@ lints:
   - name: broken_rule
     description: Missing required fields.
 ''');
-
       final outBuffer = StringBuffer();
       final errBuffer = StringBuffer();
       final code = await runJasprLintValidateCli(

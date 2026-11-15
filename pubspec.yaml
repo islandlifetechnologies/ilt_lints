@@ -12,3 +12,6 @@ workspace:
 
 dependencies:
   ilt_lints: ^2.0.2
+
+dev_dependencies:
+  jaspr_lint_builder: ^1.0.0
