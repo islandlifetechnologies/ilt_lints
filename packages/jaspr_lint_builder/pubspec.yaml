@@ -3,10 +3,9 @@ description: A Dart website builder using the Jaspr framework that generates doc
 repository: https://github.com/islandlifetechnologies/ilt_lints
 version: 1.0.0
 
+resolution: workspace
 environment:
   sdk: ^3.13.0
-
-resolution: workspace
 
 executables:
   build: build

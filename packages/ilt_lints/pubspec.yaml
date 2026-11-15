@@ -1,12 +1,11 @@
 name: ilt_lints
 description: Lints for ILT repos
 repository: https://github.com/islandlifetechnologies/ilt_lints
-version: 2.0.2
-
-environment:
-  sdk: ^3.13.0
+version: 2.0.3
 
 resolution: workspace
+environment:
+  sdk: ^3.13.0
 
 dependencies:
   analysis_server_plugin: ^0.3.26

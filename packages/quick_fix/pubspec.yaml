@@ -3,10 +3,9 @@ description: Utility package that allows from running quick fixes for custom plu
 repository: https://github.com/islandlifetechnologies/ilt_lints
 version: 1.0.0
 
+resolution: workspace
 environment:
   sdk: ^3.13.0
-
-resolution: workspace
 
 dependencies:
   analysis_server_plugin: ^0.3.26
