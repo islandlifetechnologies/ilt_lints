@@ -10,8 +10,8 @@ import 'package:analyzer/file_system/file_system.dart';
 /// A lint rule that flags usages of `DateTime.now()` and `DateTime.now` in
 /// files under `lib/` and recommends using `clock.now()` / `clock.now` from
 /// `package:clock/clock.dart` so that time can be mocked in tests.
-class UseClock extends AnalysisRule {
-  UseClock()
+class UseClock() extends AnalysisRule {
+  this
     : super(
         description: 'Use clock.now() instead of DateTime.now() so that time can be mocked in tests.',
         name: code.lowerCaseName,
@@ -222,11 +222,7 @@ class UseClock extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule);
-
-  final UseClock rule;
-
+class const _Visitor(final UseClock rule) extends SimpleAstVisitor<void> {
   @override
   void visitConstructorReference(ConstructorReference node) {
     if (UseClock.isDateTimeNowTearOff(node)) {

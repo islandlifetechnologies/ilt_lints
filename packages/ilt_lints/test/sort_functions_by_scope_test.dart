@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class SortFunctionsByScopeTest extends AnalysisRuleTest {
+class SortFunctionsByScopeTest() extends AnalysisRuleTest {
   @override
   void setUp() {
     rule = SortFunctionsByScope();
@@ -212,6 +212,40 @@ mixin MyMixin {
     );
   }
 
+  Future<void>
+  test_nonWidgetClassStillSortsLifecycleAndBuildFunctionsByScope() async {
+    const original = r'''
+class NotAWidget {
+  void _buildFooter() {}
+
+  void build() {}
+
+  void initState() {}
+
+  int get pubGetter => 1;
+
+  static void pubStatic() {}
+}
+''';
+
+    const expected = r'''
+class NotAWidget {
+  static void pubStatic() {}
+
+  int get pubGetter => 1;
+
+  void build() {}
+
+  void initState() {}
+
+  void _buildFooter() {}
+}
+''';
+
+    final fixed = await _applyFix(original);
+    expect(fixed, expected);
+  }
+
   Future<void> test_privateGetterAfterPrivateSetter() async {
     await assertDiagnostics(
       r'''
@@ -310,6 +344,162 @@ class Example {
 }
 ''',
       [lint(58, 15), lint(101, 15), lint(167, 17), lint(212, 17)],
+    );
+  }
+
+  Future<void>
+  test_widgetClassDefersOwnedFunctionsWhenSortWidgetFunctionsEnabled() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - sort_functions_by_scope
+    - sort_widget_functions
+''');
+
+    await assertNoDiagnostics(r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  void initState() {}
+  void didChangeDependencies() {}
+  void didUpdateWidget() {}
+  void deactivate() {}
+  void dispose() {}
+
+  static void pubStatic() {}
+  int get pubGetter => 1;
+  void pubInstance() {}
+  void _privInstance() {}
+
+  void buildHeader() {}
+  void _buildFooter() {}
+  void build() {}
+}
+''');
+  }
+
+  Future<void>
+  test_widgetClassFixSortsOnlyNonOwnedFunctionsWhenSortWidgetFunctionsEnabled() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - sort_functions_by_scope
+    - sort_widget_functions
+''');
+
+    const original = r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  void initState() {}
+
+  void _privInstance() {}
+
+  void pubInstance() {}
+
+  int get pubGetter => 1;
+
+  void buildHeader() {}
+
+  void _buildFooter() {}
+
+  void build() {}
+}
+''';
+
+    const expected = r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  void initState() {}
+
+  int get pubGetter => 1;
+
+  void pubInstance() {}
+
+  void _privInstance() {}
+
+  void buildHeader() {}
+
+  void _buildFooter() {}
+
+  void build() {}
+}
+''';
+
+    final fixed = await _applyFix(original);
+    expect(fixed, expected);
+  }
+
+  Future<void>
+  test_widgetClassSortsAllFunctionsWhenSortWidgetFunctionsDisabled() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - sort_functions_by_scope
+
+plugins:
+  ilt_lints:
+    diagnostics:
+      sort_widget_functions: false
+''');
+
+    const original = r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  void _buildFooter() {}
+
+  void initState() {}
+
+  int get pubGetter => 1;
+
+  void build() {}
+}
+''';
+
+    const expected = r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  int get pubGetter => 1;
+
+  void initState() {}
+
+  void build() {}
+
+  void _buildFooter() {}
+}
+''';
+
+    final fixed = await _applyFix(original);
+    expect(fixed, expected);
+  }
+
+  Future<void>
+  test_widgetClassSortsAllFunctionsWhenSortWidgetFunctionsOmitted() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - sort_functions_by_scope
+''');
+
+    await assertDiagnostics(
+      r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  void initState() {}
+  int get pubGetter => 1;
+}
+''',
+      [lint(148, 9)],
     );
   }
 

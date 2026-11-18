@@ -12,6 +12,7 @@ export 'src/fixes/sort_functions_alphabetically_fix.dart'
 export 'src/fixes/sort_functions_by_scope_fix.dart'
     show SortFunctionsByScopeFix;
 export 'src/fixes/sort_named_parameters_fix.dart' show SortNamedParametersFix;
+export 'src/fixes/sort_widget_functions_fix.dart' show SortWidgetFunctionsFix;
 export 'src/fixes/use_clock_fix.dart' show UseClockFix;
 export 'src/fixes/use_file_system_fix.dart' show UseFileSystemFix;
 export 'src/fixes/valid_json_serializable_fix.dart'
@@ -34,6 +35,8 @@ export 'src/rules/sort_functions_by_scope.dart'
     show FunctionScope, SortFunctionsByScope;
 export 'src/rules/sort_named_parameters.dart'
     show SortNamedParameters, SortNamedParametersOptions;
+export 'src/rules/sort_widget_functions.dart'
+    show SortWidgetFunctions, WidgetFunctionCategory;
 export 'src/rules/use_clock.dart' show UseClock;
 export 'src/rules/use_file_system.dart' show UseFileSystem;
 export 'src/rules/valid_json_serializable.dart'

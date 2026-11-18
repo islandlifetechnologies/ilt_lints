@@ -10,31 +10,23 @@ import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 /// Configuration for a single exporter file in [ExportLibrary].
-class ExportLibraryOption {
-  const ExportLibraryOption({
-    this.exclude = defaultExclude,
-    this.exporter = defaultExporter,
-    this.include = defaultInclude,
-  });
-
+class const ExportLibraryOption({
+  final List<String> exclude = defaultExclude,
+  final String exporter = defaultExporter,
+  final List<String> include = defaultInclude,
+}) {
   static const defaultExclude = ['**/g.dart', '**/freezed.dart'];
   static const defaultExporter = r'lib/${packageName}.dart';
   static const defaultInclude = ['src/**/*.dart'];
   static const defaultOption = ExportLibraryOption();
-
-  final List<String> exclude;
-  final String exporter;
-  final List<String> include;
 }
 
 /// Resolved custom configuration options for [ExportLibrary].
-class ExportLibraryOptions {
-  const ExportLibraryOptions({
-    this.options = const [ExportLibraryOption.defaultOption],
-  });
-
-  final List<ExportLibraryOption> options;
-}
+class const ExportLibraryOptions({
+  final List<ExportLibraryOption> options = const [
+    ExportLibraryOption.defaultOption,
+  ],
+}) {}
 
 /// A lint rule that ensures all files matching any `include` glob (and not
 /// matching any `exclude` glob) for a configured `exporter` file are exported
@@ -44,8 +36,8 @@ class ExportLibraryOptions {
 /// - `exporter`: `lib/${packageName}.dart`
 /// - `include`: `['src/**/*.dart']`
 /// - `exclude`: `['**/g.dart', '**/freezed.dart']`
-class ExportLibrary extends AnalysisRule {
-  ExportLibrary({List<ExportLibraryOption>? options})
+class ExportLibrary({List<ExportLibraryOption>? options}) extends AnalysisRule {
+  this
     : options = options != null
           ? List<ExportLibraryOption>.unmodifiable(options)
           : null,
@@ -523,21 +515,13 @@ class ExportLibrary extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(
-    this.rule, {
-    required this.file,
-    required this.libraryUri,
-    required this.optionsFile,
-    required this.optionsOverride,
-  });
-
-  final File file;
-  final Uri? libraryUri;
-  final File? optionsFile;
-  final List<ExportLibraryOption>? optionsOverride;
-  final ExportLibrary rule;
-
+class const _Visitor(
+  final ExportLibrary rule, {
+  required final File file,
+  required final Uri? libraryUri,
+  required final File? optionsFile,
+  required final List<ExportLibraryOption>? optionsOverride,
+}) extends SimpleAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     final missingExports = ExportLibrary.findMissingExports(

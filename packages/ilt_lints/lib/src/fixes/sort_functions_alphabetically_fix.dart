@@ -8,17 +8,23 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 import '../rules/sort_functions_by_scope.dart';
+import '../rules/sort_widget_functions.dart';
 
 /// A quick fix that reorders functions, getters, and setters alphabetically
 /// within each [FunctionScope] in a type body.
-class SortFunctionsAlphabeticallyFix extends ResolvedCorrectionProducer {
-  SortFunctionsAlphabeticallyFix({required super.context});
+class SortFunctionsAlphabeticallyFix({
+  required super.context,
+  bool? deferToSortWidgetFunctions,
+}) extends ResolvedCorrectionProducer {
+  this : _deferToSortWidgetFunctionsOverride = deferToSortWidgetFunctions;
 
   static const _fixKind = FixKind(
     'dart.fix.sortFunctionsAlphabetically',
     DartFixKindPriority.standard,
     'Sort functions alphabetically',
   );
+
+  final bool? _deferToSortWidgetFunctionsOverride;
 
   @override
   CorrectionApplicability get applicability =>
@@ -41,10 +47,28 @@ class SortFunctionsAlphabeticallyFix extends ResolvedCorrectionProducer {
       return;
     }
 
+    final analysisContext = unitResult.session.analysisContext;
+    final currentFile = unitResult.session.resourceProvider.getFile(
+      unitResult.path,
+    );
+    final deferWidgetFunctions =
+        _deferToSortWidgetFunctionsOverride ??
+        SortWidgetFunctions.isRuleEnabled(
+          currentFile,
+          optionsFile: analysisContext.contextRoot.optionsFile,
+        );
+    final skipWidgetOwned =
+        deferWidgetFunctions &&
+        body is BlockClassBody &&
+        SortWidgetFunctions.isWidgetClassBody(body);
+
     final entriesByScope = <FunctionScope, List<_SortableMethod>>{};
     for (var i = 0; i < members.length; i++) {
       final member = members[i];
       if (member is! MethodDeclaration) {
+        continue;
+      }
+      if (skipWidgetOwned && SortWidgetFunctions.isWidgetOwnedMethod(member)) {
         continue;
       }
       final scope = FunctionScope.of(member);
@@ -126,16 +150,9 @@ class SortFunctionsAlphabeticallyFix extends ResolvedCorrectionProducer {
   }
 }
 
-class _SortableMethod {
-  const _SortableMethod({
-    required this.name,
-    required this.originalOrder,
-    required this.range,
-    required this.text,
-  });
-
-  final String name;
-  final int originalOrder;
-  final SourceRange range;
-  final String text;
-}
+class const _SortableMethod({
+  required final String name,
+  required final int originalOrder,
+  required final SourceRange range,
+  required final String text,
+}) {}

@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class PreferPrimaryConstructorsTest extends AnalysisRuleTest {
+class PreferPrimaryConstructorsTest() extends AnalysisRuleTest {
   @override
   void setUp() {
     rule = PreferPrimaryConstructors();

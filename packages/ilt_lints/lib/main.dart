@@ -9,6 +9,7 @@ import 'src/fixes/sort_fields_fix.dart';
 import 'src/fixes/sort_functions_alphabetically_fix.dart';
 import 'src/fixes/sort_functions_by_scope_fix.dart';
 import 'src/fixes/sort_named_parameters_fix.dart';
+import 'src/fixes/sort_widget_functions_fix.dart';
 import 'src/fixes/use_clock_fix.dart';
 import 'src/fixes/use_file_system_fix.dart';
 import 'src/fixes/valid_json_serializable_fix.dart';
@@ -21,6 +22,7 @@ import 'src/rules/sort_fields.dart';
 import 'src/rules/sort_functions_alphabetically.dart';
 import 'src/rules/sort_functions_by_scope.dart';
 import 'src/rules/sort_named_parameters.dart';
+import 'src/rules/sort_widget_functions.dart';
 import 'src/rules/use_clock.dart';
 import 'src/rules/use_file_system.dart';
 import 'src/rules/valid_json_serializable.dart';
@@ -29,7 +31,7 @@ import 'src/rules/valid_json_serializable.dart';
 final plugin = IltLintsPlugin();
 
 /// Analyzer plugin that registers custom `ilt_lints` rules and quick fixes.
-class IltLintsPlugin extends Plugin {
+class IltLintsPlugin() extends Plugin {
   @override
   String get name => 'ilt_lints';
 
@@ -69,6 +71,11 @@ class IltLintsPlugin extends Plugin {
     registry.registerFixForRule(
       SortNamedParameters.code,
       SortNamedParametersFix.new,
+    );
+    registry.registerLintRule(SortWidgetFunctions());
+    registry.registerFixForRule(
+      SortWidgetFunctions.code,
+      SortWidgetFunctionsFix.new,
     );
     registry.registerLintRule(UseClock());
     registry.registerFixForRule(UseClock.code, UseClockFix.new);

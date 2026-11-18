@@ -10,8 +10,8 @@ import 'package:analyzer/file_system/file_system.dart';
 /// A lint rule that flags direct usages of `dart:io` file system types and
 /// constructors (`File`, `Directory`, `FileSystemEntity`, `Link`) in files
 /// under `lib/` and recommends using `FileSystem` from `package:file/file.dart`.
-class UseFileSystem extends AnalysisRule {
-  UseFileSystem()
+class UseFileSystem() extends AnalysisRule {
+  this
     : super(
         description: 'Use FileSystem from package:file instead of dart:io File, Directory, and FileSystemEntity.',
         name: code.lowerCaseName,
@@ -313,7 +313,11 @@ class UseFileSystem extends AnalysisRule {
       if (targetType != null && _constructibleTypeNames.contains(targetType)) {
         if (_factoryConstructorNames.contains(methodName) &&
             node.argumentList.arguments.length == 1) {
-          if (_isTargetDartIoOrPackageFile(target, unit, targetType)) {
+          if (_isTargetDartIoOrPackageFile(
+            target: target,
+            targetType: targetType,
+            unit: unit,
+          )) {
             return targetType;
           }
         }
@@ -322,7 +326,11 @@ class UseFileSystem extends AnalysisRule {
       // Static method on `FileSystemEntity`
       if (targetType == 'FileSystemEntity' &&
           _entityStaticMethods.contains(methodName)) {
-        if (_isTargetDartIoOrPackageFile(target, unit, targetType!)) {
+        if (_isTargetDartIoOrPackageFile(
+          target: target,
+          targetType: targetType!,
+          unit: unit,
+        )) {
           return targetType;
         }
       }
@@ -341,7 +349,11 @@ class UseFileSystem extends AnalysisRule {
       }
       if (node.prefix.name == 'Directory' &&
           _directoryStaticProperties.containsKey(node.identifier.name)) {
-        if (_isTargetDartIoOrPackageFile(node.prefix, unit, 'Directory')) {
+        if (_isTargetDartIoOrPackageFile(
+          target: node.prefix,
+          targetType: 'Directory',
+          unit: unit,
+        )) {
           return 'Directory';
         }
       }
@@ -357,7 +369,11 @@ class UseFileSystem extends AnalysisRule {
       if (target != null &&
           _extractTargetTypeName(target) == 'Directory' &&
           _directoryStaticProperties.containsKey(node.propertyName.name)) {
-        if (_isTargetDartIoOrPackageFile(target, unit, 'Directory')) {
+        if (_isTargetDartIoOrPackageFile(
+          target: target,
+          targetType: 'Directory',
+          unit: unit,
+        )) {
           return 'Directory';
         }
       }
@@ -494,11 +510,11 @@ class UseFileSystem extends AnalysisRule {
     return true;
   }
 
-  static bool _isTargetDartIoOrPackageFile(
-    Expression target,
-    CompilationUnit? unit,
-    String targetType,
-  ) {
+  static bool _isTargetDartIoOrPackageFile({
+    required Expression target,
+    required String targetType,
+    required CompilationUnit? unit,
+  }) {
     Element? element;
     if (target is SimpleIdentifier) {
       element = target.element;
@@ -565,11 +581,7 @@ class UseFileSystem extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule);
-
-  final UseFileSystem rule;
-
+class const _Visitor(final UseFileSystem rule) extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     final targetName = UseFileSystem.targetNameForCallOrAccess(node);

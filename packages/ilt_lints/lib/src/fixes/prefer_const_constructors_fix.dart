@@ -9,9 +9,8 @@ import '../rules/prefer_const_constructors.dart';
 /// A quick fix that adds the `const` modifier to a class's primary constructor
 /// (`class const Foo(...)`) or generative constructor declarations
 /// (`const Foo(...);`).
-class PreferConstConstructorsFix extends ResolvedCorrectionProducer {
-  PreferConstConstructorsFix({required super.context});
-
+class PreferConstConstructorsFix({required super.context})
+    extends ResolvedCorrectionProducer {
   static const _fixKind = FixKind(
     'dart.fix.preferConstConstructors',
     DartFixKindPriority.standard,

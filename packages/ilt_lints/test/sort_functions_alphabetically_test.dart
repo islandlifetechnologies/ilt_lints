@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class SortFunctionsAlphabeticallyTest extends AnalysisRuleTest {
+class SortFunctionsAlphabeticallyTest() extends AnalysisRuleTest {
   @override
   void setUp() {
     rule = SortFunctionsAlphabetically();
@@ -168,6 +168,40 @@ class Example {
 ''');
   }
 
+  Future<void>
+  test_nonWidgetClassStillSortsLifecycleAndBuildFunctionsAlphabetically() async {
+    const original = r'''
+class NotAWidget {
+  void initState() {}
+
+  void dispose() {}
+
+  void buildHeader() {}
+
+  void build() {}
+
+  void alpha() {}
+}
+''';
+
+    const expected = r'''
+class NotAWidget {
+  void alpha() {}
+
+  void build() {}
+
+  void buildHeader() {}
+
+  void dispose() {}
+
+  void initState() {}
+}
+''';
+
+    final fixed = await _applyFix(original);
+    expect(fixed, expected);
+  }
+
   Future<void> test_privateGettersOutOfAlphabeticalOrder() async {
     await assertDiagnostics(
       r'''
@@ -298,6 +332,169 @@ class Example {
   static void alphaMethod() {}
 }
 ''');
+  }
+
+  Future<void>
+  test_widgetClassDefersOwnedFunctionsWhenSortWidgetFunctionsEnabled() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - sort_functions_alphabetically
+    - sort_widget_functions
+''');
+
+    await assertNoDiagnostics(r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  void initState() {}
+  void didChangeDependencies() {}
+  void didUpdateWidget() {}
+  void deactivate() {}
+  void dispose() {}
+
+  void alphaInstance() {}
+  void zebraInstance() {}
+
+  void _alphaPrivate() {}
+  void _zebraPrivate() {}
+
+  void buildZebra() {}
+  void buildAlpha() {}
+  void _buildZebra() {}
+  void _buildAlpha() {}
+  void build() {}
+}
+''');
+  }
+
+  Future<void>
+  test_widgetClassFixSortsOnlyNonOwnedFunctionsWhenSortWidgetFunctionsEnabled() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - sort_functions_alphabetically
+    - sort_widget_functions
+''');
+
+    const original = r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  void initState() {}
+
+  void dispose() {}
+
+  void zebraInstance() {}
+
+  void alphaInstance() {}
+
+  void buildZebra() {}
+
+  void buildAlpha() {}
+
+  void build() {}
+}
+''';
+
+    const expected = r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  void initState() {}
+
+  void dispose() {}
+
+  void alphaInstance() {}
+
+  void zebraInstance() {}
+
+  void buildZebra() {}
+
+  void buildAlpha() {}
+
+  void build() {}
+}
+''';
+
+    final fixed = await _applyFix(original);
+    expect(fixed, expected);
+  }
+
+  Future<void>
+  test_widgetClassSortsAllFunctionsWhenSortWidgetFunctionsDisabled() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - sort_functions_alphabetically
+
+plugins:
+  ilt_lints:
+    diagnostics:
+      sort_widget_functions: false
+''');
+
+    const original = r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  void initState() {}
+
+  void dispose() {}
+
+  void buildHeader() {}
+
+  void build() {}
+
+  void alphaInstance() {}
+}
+''';
+
+    const expected = r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  void alphaInstance() {}
+
+  void build() {}
+
+  void buildHeader() {}
+
+  void dispose() {}
+
+  void initState() {}
+}
+''';
+
+    final fixed = await _applyFix(original);
+    expect(fixed, expected);
+  }
+
+  Future<void>
+  test_widgetClassSortsAllFunctionsWhenSortWidgetFunctionsOmitted() async {
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - sort_functions_alphabetically
+''');
+
+    await assertDiagnostics(
+      r'''
+abstract class Widget {}
+abstract class StatelessWidget extends Widget {}
+
+class MyWidget extends StatelessWidget {
+  void initState() {}
+  void alphaInstance() {}
+}
+''',
+      [lint(145, 13)],
+    );
   }
 
   Future<String> _applyFix(String content) async {

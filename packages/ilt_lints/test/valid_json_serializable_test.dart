@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ValidJsonSerializableTest extends AnalysisRuleTest {
+class ValidJsonSerializableTest() extends AnalysisRuleTest {
   @override
   void setUp() {
     rule = ValidJsonSerializable();

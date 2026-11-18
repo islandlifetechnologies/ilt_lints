@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class PreferConstConstructorsTest extends AnalysisRuleTest {
+class PreferConstConstructorsTest() extends AnalysisRuleTest {
   @override
   void setUp() {
     rule = PreferConstConstructors();

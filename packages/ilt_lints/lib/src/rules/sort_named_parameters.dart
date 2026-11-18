@@ -8,15 +8,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:yaml/yaml.dart';
 
 /// Resolved custom configuration options for [SortNamedParameters].
-class SortNamedParametersOptions {
-  const SortNamedParametersOptions({
-    this.ignore = const {},
-    this.requiredFirst = false,
-  });
-
-  final Set<String> ignore;
-  final bool requiredFirst;
-}
+class const SortNamedParametersOptions({
+  final Set<String> ignore = const {},
+  final bool requiredFirst = false,
+}) {}
 
 /// A lint rule that enforces sorting named parameters alphabetically in both
 /// function/constructor declarations ([FormalParameterList]) and call sites
@@ -27,15 +22,16 @@ class SortNamedParametersOptions {
 /// - `required_first`: when `true` (defaults to `false`), sorts `required`
 ///   named parameters alphabetically before optional named parameters in
 ///   function/constructor declarations.
-class SortNamedParameters extends AnalysisRule {
-  SortNamedParameters({
-    Iterable<String> ignore = const [],
-    this.requiredFirst = false,
-  }) : ignore = Set<String>.unmodifiable(ignore),
-       super(
-         description: 'Sort named parameters and arguments alphabetically.',
-         name: code.lowerCaseName,
-       );
+class SortNamedParameters({
+  Iterable<String> ignore = const [],
+  final bool requiredFirst = false,
+}) extends AnalysisRule {
+  this
+    : ignore = Set<String>.unmodifiable(ignore),
+      super(
+        description: 'Sort named parameters and arguments alphabetically.',
+        name: code.lowerCaseName,
+      );
 
   static const code = LintCode(
     'sort_named_parameters',
@@ -45,10 +41,6 @@ class SortNamedParameters extends AnalysisRule {
 
   /// Parameter names configured directly on this rule instance to ignore.
   final Set<String> ignore;
-
-  /// Whether `required` named parameters must appear before optional named
-  /// parameters in declarations.
-  final bool requiredFirst;
 
   /// Strips leading underscores from [name] so private named parameters (such
   /// as `this._foo` or `required String _foo`) are sorted by their public
@@ -191,17 +183,11 @@ class SortNamedParameters extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(
-    this.rule, {
-    required this.ignoredNames,
-    required this.requiredFirst,
-  });
-
-  final Set<String> ignoredNames;
-  final bool requiredFirst;
-  final SortNamedParameters rule;
-
+class const _Visitor(
+  final SortNamedParameters rule, {
+  required final Set<String> ignoredNames,
+  required final bool requiredFirst,
+}) extends SimpleAstVisitor<void> {
   @override
   void visitArgumentList(ArgumentList node) {
     String? maxName;

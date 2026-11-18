@@ -18,9 +18,8 @@ import '../rules/use_file_system.dart';
 /// `FileSystemEntity`, and `Link` usages with `package:file/file.dart`'s
 /// `FileSystem` (`fs` when `io_ext` is imported, `_fs` on classes, or `fs` on
 /// top-level functions) and updates imports accordingly.
-class UseFileSystemFix extends ResolvedCorrectionProducer {
-  UseFileSystemFix({required super.context});
-
+class UseFileSystemFix({required super.context})
+    extends ResolvedCorrectionProducer {
   static const _fileImportUri = 'package:file/file.dart';
 
   static const _fixKind = FixKind(
@@ -817,7 +816,7 @@ class UseFileSystemFix extends ResolvedCorrectionProducer {
   }
 }
 
-class _FlaggedNamedTypeCollector extends RecursiveAstVisitor<void> {
+class _FlaggedNamedTypeCollector() extends RecursiveAstVisitor<void> {
   final nodes = <NamedType>[];
 
   @override
@@ -829,10 +828,8 @@ class _FlaggedNamedTypeCollector extends RecursiveAstVisitor<void> {
   }
 }
 
-class _OtherDartIoUsageChecker extends RecursiveAstVisitor<void> {
-  _OtherDartIoUsageChecker(this.knownDartIoNames);
-
-  final Set<String> knownDartIoNames;
+class _OtherDartIoUsageChecker(final Set<String> knownDartIoNames)
+    extends RecursiveAstVisitor<void> {
   var found = false;
 
   @override
@@ -882,7 +879,7 @@ class _OtherDartIoUsageChecker extends RecursiveAstVisitor<void> {
   }
 }
 
-class _OutermostCallCollector extends RecursiveAstVisitor<void> {
+class _OutermostCallCollector() extends RecursiveAstVisitor<void> {
   final calls = <AstNode>[];
 
   @override

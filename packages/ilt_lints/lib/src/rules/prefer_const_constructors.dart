@@ -8,25 +8,18 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 /// Result of analyzing a [ClassDeclaration] for [PreferConstConstructors].
-class PreferConstConstructorsAnalysis {
-  const PreferConstConstructorsAnalysis({
-    required this.classNode,
-    required this.isPrimaryConstructor,
-    required this.reportToken,
-    required this.targetConstructors,
-  });
-
-  final ClassDeclaration classNode;
-  final bool isPrimaryConstructor;
-  final Token reportToken;
-  final List<ConstructorDeclaration> targetConstructors;
-}
+class const PreferConstConstructorsAnalysis({
+  required final ClassDeclaration classNode,
+  required final bool isPrimaryConstructor,
+  required final Token reportToken,
+  required final List<ConstructorDeclaration> targetConstructors,
+}) {}
 
 /// A lint rule that determines whether a class's constructor (primary or
 /// generative) can be marked `const` without any other changes and flags it if
 /// it is not already `const`.
-class PreferConstConstructors extends AnalysisRule {
-  PreferConstConstructors()
+class PreferConstConstructors() extends AnalysisRule {
+  this
     : super(
         description: 'Prefer marking constructors const when the class can be const without other changes.',
         name: code.lowerCaseName,
@@ -98,7 +91,11 @@ class PreferConstConstructors extends AnalysisRule {
       if (namePart.constKeyword != null) {
         return null;
       }
-      if (!_canPrimaryConstructorBeConst(node, namePart, body)) {
+      if (!_canPrimaryConstructorBeConst(
+        body: body,
+        classNode: node,
+        primary: namePart,
+      )) {
         return null;
       }
       return PreferConstConstructorsAnalysis(
@@ -165,11 +162,11 @@ class PreferConstConstructors extends AnalysisRule {
     );
   }
 
-  static bool _canPrimaryConstructorBeConst(
-    ClassDeclaration classNode,
-    PrimaryConstructorDeclaration primary,
-    BlockClassBody body,
-  ) {
+  static bool _canPrimaryConstructorBeConst({
+    required BlockClassBody body,
+    required ClassDeclaration classNode,
+    required PrimaryConstructorDeclaration primary,
+  }) {
     if (!_isParameterListConst(
       primary.formalParameters,
       checkDeclaringVar: true,
@@ -206,11 +203,11 @@ class PreferConstConstructors extends AnalysisRule {
     return true;
   }
 
-  static bool _canTargetConstructorInSameClassBeConst(
-    ClassDeclaration classNode,
-    ConstructorElement? targetElement,
-    Set<ConstructorDeclaration> visiting,
-  ) {
+  static bool _canTargetConstructorInSameClassBeConst({
+    required ClassDeclaration classNode,
+    required ConstructorElement? targetElement,
+    required Set<ConstructorDeclaration> visiting,
+  }) {
     if (targetElement == null) {
       return false;
     }
@@ -304,9 +301,9 @@ class PreferConstConstructors extends AnalysisRule {
     if (redirectedConstructor != null) {
       final targetElement = redirectedConstructor.element;
       if (!_canTargetConstructorInSameClassBeConst(
-        classNode,
-        targetElement,
-        visiting,
+        classNode: classNode,
+        targetElement: targetElement,
+        visiting: visiting,
       )) {
         return false;
       }
@@ -358,9 +355,9 @@ class PreferConstConstructors extends AnalysisRule {
         hasExplicitSuperOrRedirect = true;
         final targetElement = initializer.element;
         if (!_canTargetConstructorInSameClassBeConst(
-          classNode,
-          targetElement,
-          visiting,
+          classNode: classNode,
+          targetElement: targetElement,
+          visiting: visiting,
         )) {
           return false;
         }
@@ -635,11 +632,8 @@ class PreferConstConstructors extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule);
-
-  final PreferConstConstructors rule;
-
+class const _Visitor(final PreferConstConstructors rule)
+    extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     final analysis = PreferConstConstructors.analyzeClass(node);

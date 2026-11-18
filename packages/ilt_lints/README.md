@@ -22,6 +22,7 @@ plugins:
       sort_functions_by_scope: true
       sort_functions_alphabetically: true
       sort_named_parameters: true
+      sort_widget_functions: true
       use_clock: true
       use_file_system: true
       valid_json_serializable: true
@@ -183,13 +184,13 @@ Ensures functions, getters, and setters within a type body (classes, mixins, enu
 11. Public instance functions
 12. Private instance functions
 
-Fields, constructors, and operators are ignored. Includes an automated quick fix (`Sort functions by scope`).
+Fields, constructors, and operators are ignored. When `sort_widget_functions` is enabled on a Widget class, functions owned by `sort_widget_functions` (`initState`, `didChangeDependencies`, `didUpdateWidget`, `deactivate`, `dispose`, `build*`, `_build*`, and `build`) are deferred to `sort_widget_functions`. Includes an automated quick fix (`Sort functions by scope`).
 
 ### `sort_functions_alphabetically`
 
 Ensures functions, getters, and setters within a type body are sorted alphabetically (lexicographically) within each scope (e.g., all public static getters alphabetically, all public static setters alphabetically, all public static functions alphabetically, etc.).
 
-Fields, constructors, and operators are ignored. Includes an automated quick fix (`Sort functions alphabetically`).
+Fields, constructors, and operators are ignored. When `sort_widget_functions` is enabled on a Widget class, functions owned by `sort_widget_functions` (`initState`, `didChangeDependencies`, `didUpdateWidget`, `deactivate`, `dispose`, `build*`, `_build*`, and `build`) are deferred to `sort_widget_functions`. Includes an automated quick fix (`Sort functions alphabetically`).
 
 ### `sort_named_parameters`
 
@@ -209,6 +210,22 @@ sort_named_parameters:
 ```
 
 Includes an automated quick fix (`Sort named parameters alphabetically`).
+
+### `sort_widget_functions`
+
+Ensures functions within a `Widget` subclass are sorted in lifecycle and build order:
+
+1. `initState`
+2. `didChangeDependencies`
+3. `didUpdateWidget`
+4. `deactivate`
+5. `dispose`
+6. Other functions, getters, and setters (sorted by `sort_functions_by_scope` and `sort_functions_alphabetically` when enabled)
+7. Public functions prefixed with `build` (`build*`)
+8. Private functions prefixed with `_build` (`_build*`)
+9. `build`
+
+Classes that do not extend or implement `Widget` are ignored. Includes an automated quick fix (`Sort widget functions`).
 
 ### `use_clock`
 

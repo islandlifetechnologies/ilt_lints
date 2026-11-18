@@ -33,6 +33,11 @@ Future<void> main(List<String> args) async {
         ruleFactory: SortFields.new,
       ),
       RuleFixEntry(
+        fixGenerator: SortWidgetFunctionsFix.new,
+        name: SortWidgetFunctions.code.lowerCaseName,
+        ruleFactory: SortWidgetFunctions.new,
+      ),
+      RuleFixEntry(
         fixGenerator: SortFunctionsByScopeFix.new,
         name: SortFunctionsByScope.code.lowerCaseName,
         ruleFactory: SortFunctionsByScope.new,

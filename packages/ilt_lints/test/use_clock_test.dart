@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class UseClockTest extends AnalysisRuleTest {
+class UseClockTest() extends AnalysisRuleTest {
   @override
   void setUp() {
     rule = UseClock();

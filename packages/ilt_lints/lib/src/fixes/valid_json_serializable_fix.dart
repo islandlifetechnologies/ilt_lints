@@ -9,9 +9,8 @@ import '../rules/valid_json_serializable.dart';
 
 /// A quick fix that adds the generated `part` directive and adds or updates
 /// `fromJson` and `toJson` methods for `@JsonSerializable` classes.
-class ValidJsonSerializableFix extends ResolvedCorrectionProducer {
-  ValidJsonSerializableFix({required super.context});
-
+class ValidJsonSerializableFix({required super.context})
+    extends ResolvedCorrectionProducer {
   static const _fixKind = FixKind(
     'dart.fix.validJsonSerializable',
     DartFixKindPriority.standard,
@@ -87,7 +86,11 @@ class ValidJsonSerializableFix extends ResolvedCorrectionProducer {
         (analysis.needsPartDirective &&
             expectedPartUri != null &&
             !alreadyAddedPart)
-        ? _computePartDirectiveInsertion(unitResult.unit, expectedPartUri, eol)
+        ? _computePartDirectiveInsertion(
+            eol: eol,
+            expectedPartUri: expectedPartUri,
+            unit: unitResult.unit,
+          )
         : null;
 
     if (partInsertion == null && replacements.isEmpty && additions.isEmpty) {
@@ -126,11 +129,11 @@ class ValidJsonSerializableFix extends ResolvedCorrectionProducer {
     });
   }
 
-  (int, String)? _computePartDirectiveInsertion(
-    CompilationUnit unit,
-    String expectedPartUri,
-    String eol,
-  ) {
+  (int, String)? _computePartDirectiveInsertion({
+    required String eol,
+    required String expectedPartUri,
+    required CompilationUnit unit,
+  }) {
     if (unit.directives.any((d) => d is PartOfDirective)) {
       return null;
     }

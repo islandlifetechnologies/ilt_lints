@@ -10,9 +10,7 @@ import '../rules/use_clock.dart';
 /// A quick fix that replaces `DateTime.now()` with `clock.now()` (or
 /// `DateTime.now` tear-offs with `clock.now`) and adds
 /// `import 'package:clock/clock.dart';` when missing.
-class UseClockFix extends ResolvedCorrectionProducer {
-  UseClockFix({required super.context});
-
+class UseClockFix({required super.context}) extends ResolvedCorrectionProducer {
   static const _clockImportLine = "import '$_clockImportUri';";
   static const _clockImportUri = 'package:clock/clock.dart';
 

@@ -37,11 +37,7 @@ enum FieldScope {
 }
 
 /// Resolved custom configuration options for [SortFields].
-class SortFieldsOptions {
-  const SortFieldsOptions({this.finalFirst = true});
-
-  final bool finalFirst;
-}
+class const SortFieldsOptions({final bool finalFirst = true}) {}
 
 /// A lint rule that enforces sorting class-level fields above all methods,
 /// getters, setters, and operators (ignoring constructors), grouped by
@@ -54,8 +50,8 @@ class SortFieldsOptions {
 /// 4. Private `static` fields
 /// 5. Public instance fields
 /// 6. Private instance fields
-class SortFields extends AnalysisRule {
-  SortFields({this.finalFirst})
+class SortFields({final bool? finalFirst}) extends AnalysisRule {
+  this
     : super(
         description: 'Sort fields above methods by scope and alphabetically within each scope.',
         name: code.lowerCaseName,
@@ -67,10 +63,6 @@ class SortFields extends AnalysisRule {
     correctionMessage:
         'Try sorting fields by scope and alphabetically above methods.',
   );
-
-  /// Optional override for `final_first`. When `null`, the setting is read from
-  /// `analysis_options.yaml` (defaulting to `true`).
-  final bool? finalFirst;
 
   /// Reads the configured [SortFieldsOptions] (`final_first`) for `sort_fields`
   /// from `analysis_options.yaml` starting from [startFile] or [optionsFile].
@@ -179,12 +171,8 @@ class SortFields extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule, {required this.finalFirst});
-
-  final bool finalFirst;
-  final SortFields rule;
-
+class const _Visitor(final SortFields rule, {required final bool finalFirst})
+    extends SimpleAstVisitor<void> {
   @override
   void visitBlockClassBody(BlockClassBody node) {
     _checkMembers(node.members);

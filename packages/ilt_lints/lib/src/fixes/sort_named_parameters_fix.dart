@@ -14,13 +14,14 @@ import '../rules/sort_named_parameters.dart';
 /// alphabetically (and with `required` parameters first in declarations when
 /// `required_first` is enabled), leaving ignored names and positional
 /// parameters/arguments in their existing positions.
-class SortNamedParametersFix extends ResolvedCorrectionProducer {
-  SortNamedParametersFix({
-    required super.context,
-    Iterable<String> ignore = const [],
-    bool requiredFirst = false,
-  }) : _extraIgnore = Set<String>.unmodifiable(ignore),
-       _extraRequiredFirst = requiredFirst;
+class SortNamedParametersFix({
+  required super.context,
+  Iterable<String> ignore = const [],
+  bool requiredFirst = false,
+}) extends ResolvedCorrectionProducer {
+  this
+    : _extraIgnore = Set<String>.unmodifiable(ignore),
+      _extraRequiredFirst = requiredFirst;
 
   static const _fixKind = FixKind(
     'dart.fix.sortNamedParameters',
@@ -156,18 +157,10 @@ class SortNamedParametersFix extends ResolvedCorrectionProducer {
   }
 }
 
-class _SortableNamedItem {
-  const _SortableNamedItem({
-    required this.isRequired,
-    required this.name,
-    required this.originalOrder,
-    required this.range,
-    required this.text,
-  });
-
-  final bool isRequired;
-  final String name;
-  final int originalOrder;
-  final SourceRange range;
-  final String text;
-}
+class const _SortableNamedItem({
+  required final bool isRequired,
+  required final String name,
+  required final int originalOrder,
+  required final SourceRange range,
+  required final String text,
+}) {}

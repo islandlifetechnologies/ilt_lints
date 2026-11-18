@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class SortNamedParametersTest extends AnalysisRuleTest {
+class SortNamedParametersTest() extends AnalysisRuleTest {
   @override
   void setUp() {
     rule = SortNamedParameters();

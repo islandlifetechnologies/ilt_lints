@@ -7,23 +7,16 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 /// Result of analyzing a [ClassDeclaration] for [PreferPrimaryConstructors].
-class PreferPrimaryConstructorsAnalysis {
-  const PreferPrimaryConstructorsAnalysis({
-    required this.classNameToken,
-    required this.classNode,
-    required this.hasSingleGenerativeConstructor,
-    required this.targetConstructor,
-  });
-
-  final Token classNameToken;
-  final ClassDeclaration classNode;
-  final bool hasSingleGenerativeConstructor;
-  final ConstructorDeclaration? targetConstructor;
-}
+class const PreferPrimaryConstructorsAnalysis({
+  required final Token classNameToken,
+  required final ClassDeclaration classNode,
+  required final bool hasSingleGenerativeConstructor,
+  required final ConstructorDeclaration? targetConstructor,
+}) {}
 
 /// A lint rule that flags classes that do not use a primary constructor.
-class PreferPrimaryConstructors extends AnalysisRule {
-  PreferPrimaryConstructors()
+class PreferPrimaryConstructors() extends AnalysisRule {
+  this
     : super(
         description: 'Prefer using a primary constructor for classes.',
         name: code.lowerCaseName,
@@ -123,11 +116,8 @@ class PreferPrimaryConstructors extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule);
-
-  final PreferPrimaryConstructors rule;
-
+class const _Visitor(final PreferPrimaryConstructors rule)
+    extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     final analysis = PreferPrimaryConstructors.analyzeClass(node);

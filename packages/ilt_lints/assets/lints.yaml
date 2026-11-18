@@ -294,7 +294,8 @@ lints:
       Ensures functions, getters, and setters within a type body (classes,
       mixins, enums, extensions, and extension types) are sorted alphabetically
       (lexicographically) within each scope. Fields, constructors, and operators
-      are ignored.
+      are ignored. When `sort_widget_functions` is enabled, functions owned by
+      `sort_widget_functions` in `Widget` classes are deferred to that rule.
     do: Sort functions, getters, and setters alphabetically within each scope.
     bad:
       - |
@@ -342,7 +343,9 @@ lints:
       private static getters, private static setters, private static functions,
       public getters, public setters, private getters, private setters, public
       instance functions, and private instance functions. Fields, constructors,
-      and operators are ignored.
+      and operators are ignored. When `sort_widget_functions` is enabled,
+      functions owned by `sort_widget_functions` in `Widget` classes are
+      deferred to that rule.
     do: >-
       Sort functions, getters, and setters by static/instance and visibility
       scope.
@@ -435,6 +438,61 @@ lints:
         ignore:
           - key
           - child
+
+  - name: sort_widget_functions
+    tags:
+      - style
+    description: >-
+      Ensures functions within a `Widget` subclass are sorted in widget
+      lifecycle and build order: `initState`, `didChangeDependencies`,
+      `didUpdateWidget`, `deactivate`, `dispose`, other functions/getters/setters,
+      public `build*` functions, private `_build*` functions, and finally
+      `build`. Non-widget classes pass this rule automatically.
+    do: >-
+      Sort widget lifecycle methods first (`initState`, `didChangeDependencies`,
+      `didUpdateWidget`, `deactivate`, `dispose`), followed by other functions,
+      then `build*` and `_build*` helper methods by scope, and `build` last.
+    bad:
+      - |
+        class MyWidget extends StatelessWidget {
+          // `build` is placed before helper and lifecycle methods.
+          @override
+          Widget build(BuildContext context) => _buildBody(context);
+
+          Widget _buildBody(BuildContext context) => buildHeader(context);
+
+          Widget buildHeader(BuildContext context) => const SizedBox();
+
+          void handleTap() {}
+
+          void dispose() {}
+
+          void initState() {}
+        }
+    good:
+      - |
+        class MyWidget extends StatelessWidget {
+          // Lifecycle methods come first, followed by regular methods, `build*` helpers by scope, and `build` last.
+          void initState() {}
+
+          void dispose() {}
+
+          void handleTap() {}
+
+          Widget buildHeader(BuildContext context) => const SizedBox();
+
+          Widget _buildBody(BuildContext context) => buildHeader(context);
+
+          @override
+          Widget build(BuildContext context) => _buildBody(context);
+        }
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            sort_widget_functions: true
 
   - name: use_clock
     tags:

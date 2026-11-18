@@ -4,13 +4,16 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 
 import 'sort_functions_by_scope.dart';
+import 'sort_widget_functions.dart';
 
 /// A lint rule that enforces sorting functions, getters, and setters
 /// alphabetically within each [FunctionScope].
-class SortFunctionsAlphabetically extends AnalysisRule {
-  SortFunctionsAlphabetically()
+class SortFunctionsAlphabetically({final bool? deferToSortWidgetFunctions})
+    extends AnalysisRule {
+  this
     : super(
         description: 'Sort functions, getters, and setters alphabetically within each scope.',
         name: code.lowerCaseName,
@@ -31,31 +34,55 @@ class SortFunctionsAlphabetically extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    final visitor = _Visitor(this);
+    File? optionsFile;
+    try {
+      optionsFile = context
+          .libraryElement
+          ?.session
+          .analysisContext
+          .contextRoot
+          .optionsFile;
+    } on Object {
+      optionsFile = null;
+    }
+    final deferWidgetFunctions =
+        deferToSortWidgetFunctions ??
+        SortWidgetFunctions.isRuleEnabled(
+          context.definingUnit.file,
+          optionsFile: optionsFile,
+        );
+    final visitor = _Visitor(this, deferWidgetFunctions: deferWidgetFunctions);
     registry.addBlockClassBody(this, visitor);
     registry.addBlockEnumBody(this, visitor);
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule);
-
-  final SortFunctionsAlphabetically rule;
-
+class const _Visitor(
+  final SortFunctionsAlphabetically rule, {
+  required final bool deferWidgetFunctions,
+}) extends SimpleAstVisitor<void> {
   @override
   void visitBlockClassBody(BlockClassBody node) {
-    _checkMembers(node.members);
+    final skipWidgetOwned =
+        deferWidgetFunctions && SortWidgetFunctions.isWidgetClassBody(node);
+    _checkMembers(node.members, skipWidgetOwned: skipWidgetOwned);
   }
 
   @override
   void visitBlockEnumBody(BlockEnumBody node) {
-    _checkMembers(node.members);
+    _checkMembers(node.members, skipWidgetOwned: false);
   }
 
-  void _checkMembers(NodeList<ClassMember> members) {
+  void _checkMembers(
+    NodeList<ClassMember> members, {
+    required bool skipWidgetOwned,
+  }) {
     final maxNameByScope = <FunctionScope, String>{};
     for (final member in members) {
       if (member is! MethodDeclaration) {
+        continue;
+      }
+      if (skipWidgetOwned && SortWidgetFunctions.isWidgetOwnedMethod(member)) {
         continue;
       }
       final scope = FunctionScope.of(member);

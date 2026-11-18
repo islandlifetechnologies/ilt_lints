@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class UseFileSystemTest extends AnalysisRuleTest {
+class UseFileSystemTest() extends AnalysisRuleTest {
   @override
   void setUp() {
     rule = UseFileSystem();

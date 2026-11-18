@@ -1,0 +1,382 @@
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:yaml/yaml.dart';
+
+/// Ordering categories for functions, getters, and setters within a Widget
+/// class body when [SortWidgetFunctions] is enabled.
+enum WidgetFunctionCategory {
+  initState("'initState'"),
+  didChangeDependencies("'didChangeDependencies'"),
+  didUpdateWidget("'didUpdateWidget'"),
+  deactivate("'deactivate'"),
+  dispose("'dispose'"),
+  other('functions'),
+  publicBuildPrefix("public 'build*' functions"),
+  privateBuildPrefix("private '_build*' functions"),
+  build("'build'");
+
+  const WidgetFunctionCategory(this.description);
+
+  final String description;
+
+  /// Returns the [WidgetFunctionCategory] for [method], or `null` if [method]
+  /// is not subject to function sorting (such as an operator).
+  static WidgetFunctionCategory? of(MethodDeclaration method) {
+    if (method.isOperator) {
+      return null;
+    }
+    if (!method.isStatic && !method.isGetter && !method.isSetter) {
+      final name = method.name.lexeme;
+      switch (name) {
+        case 'initState':
+          return WidgetFunctionCategory.initState;
+        case 'didChangeDependencies':
+          return WidgetFunctionCategory.didChangeDependencies;
+        case 'didUpdateWidget':
+          return WidgetFunctionCategory.didUpdateWidget;
+        case 'deactivate':
+          return WidgetFunctionCategory.deactivate;
+        case 'dispose':
+          return WidgetFunctionCategory.dispose;
+        case 'build':
+          return WidgetFunctionCategory.build;
+      }
+      if (name.startsWith('build')) {
+        return WidgetFunctionCategory.publicBuildPrefix;
+      }
+      if (name.startsWith('_build')) {
+        return WidgetFunctionCategory.privateBuildPrefix;
+      }
+    }
+    return WidgetFunctionCategory.other;
+  }
+
+  /// Whether this category is owned by [SortWidgetFunctions] (and therefore
+  /// deferred by `sort_functions_by_scope` and
+  /// `sort_functions_alphabetically`).
+  bool get isOwnedByWidgetRule => this != WidgetFunctionCategory.other;
+}
+
+/// A lint rule that enforces widget lifecycle and build method ordering inside
+/// Widget classes:
+/// 1. `initState`
+/// 2. `didChangeDependencies`
+/// 3. `didUpdateWidget`
+/// 4. `deactivate`
+/// 5. `dispose`
+/// 6. Other functions, getters, and setters
+/// 7. Public `build*` helper functions
+/// 8. Private `_build*` helper functions
+/// 9. `build`
+class SortWidgetFunctions() extends AnalysisRule {
+  this
+    : super(
+        description:
+            'Sort widget lifecycle and build functions in a standard order.',
+        name: code.lowerCaseName,
+      );
+
+  static const code = LintCode(
+    'sort_widget_functions',
+    'Sort {0} before {1}.',
+    correctionMessage: 'Try sorting widget functions in lifecycle order.',
+  );
+
+  static const _commonWidgetSuperclassNames = {
+    'AnimatedWidget',
+    'ConsumerStatefulWidget',
+    'ConsumerWidget',
+    'HookConsumerWidget',
+    'HookWidget',
+    'InheritedModel',
+    'InheritedNotifier',
+    'InheritedTheme',
+    'InheritedWidget',
+    'LeafRenderObjectWidget',
+    'MultiChildRenderObjectWidget',
+    'ParentDataWidget',
+    'PreferredSizeWidget',
+    'ProxyWidget',
+    'RenderObjectWidget',
+    'SingleChildRenderObjectWidget',
+    'StatefulWidget',
+    'StatelessWidget',
+    'Widget',
+  };
+
+  /// Returns `true` if `sort_widget_functions` is enabled in
+  /// `analysis_options.yaml` starting from [startFile] or [optionsFile].
+  ///
+  /// Returns `true` when:
+  /// - No `analysis_options.yaml` exists (default rule set),
+  /// - `sort_widget_functions` is explicitly enabled in `analysis_options.yaml`, or
+  /// - `package:ilt_lints/lints.yaml` is included (and `sort_widget_functions`
+  ///   is not explicitly disabled).
+  ///
+  /// Returns `false` when `sort_widget_functions` is explicitly disabled or
+  /// when `analysis_options.yaml` configures `ilt_lints` / `linter` rules
+  /// without including `package:ilt_lints/lints.yaml` or enabling
+  /// `sort_widget_functions`.
+  static bool isRuleEnabled(File? startFile, {File? optionsFile}) {
+    final resolvedOptionsFile = optionsFile ?? _findOptionsFile(startFile);
+    if (resolvedOptionsFile == null || !resolvedOptionsFile.exists) {
+      return true;
+    }
+    try {
+      final content = resolvedOptionsFile.readAsStringSync();
+      final root = loadYamlNode(content);
+      if (root is! YamlMap) {
+        return true;
+      }
+      var hasExplicitRuleConfig = false;
+      var includesIltLints = false;
+      bool? explicitSetting;
+
+      final includeNode = root['include'];
+      if (includeNode is String && includeNode.contains('ilt_lints')) {
+        includesIltLints = true;
+      } else if (includeNode is YamlList) {
+        for (final item in includeNode.nodes) {
+          if (item case YamlScalar(value: final String inc)
+              when inc.contains('ilt_lints')) {
+            includesIltLints = true;
+          }
+        }
+      }
+
+      void checkRuleValue(Object? value) {
+        if (value is bool) {
+          explicitSetting = value;
+        } else if (value is String) {
+          final normalized = value.toLowerCase();
+          if (normalized == 'ignore' ||
+              normalized == 'false' ||
+              normalized == 'disable') {
+            explicitSetting = false;
+          } else if (normalized == 'true' ||
+              normalized == 'enable' ||
+              normalized == 'info' ||
+              normalized == 'warning' ||
+              normalized == 'error') {
+            explicitSetting = true;
+          }
+        } else if (value is YamlMap) {
+          if (value['enabled'] case final bool enabled) {
+            explicitSetting = enabled;
+          } else {
+            explicitSetting = true;
+          }
+        }
+      }
+
+      void inspectRulesCollection(Object? rulesNode) {
+        if (rulesNode is YamlList) {
+          hasExplicitRuleConfig = true;
+          for (final item in rulesNode.nodes) {
+            if (item case YamlScalar(value: final String name)
+                when name.toLowerCase() == 'sort_widget_functions') {
+              explicitSetting = true;
+            }
+          }
+        } else if (rulesNode is YamlMap) {
+          hasExplicitRuleConfig = true;
+          for (final entry in rulesNode.entries) {
+            final key = entry.key;
+            if (key is String && key.toLowerCase() == 'sort_widget_functions') {
+              checkRuleValue(entry.value);
+            }
+          }
+        }
+      }
+
+      if (root['linter'] case final YamlMap linter) {
+        inspectRulesCollection(linter['rules']);
+      }
+
+      if (root['ilt_lints'] case final YamlMap iltLints) {
+        inspectRulesCollection(iltLints['diagnostics']);
+        inspectRulesCollection(iltLints['rules']);
+      }
+
+      if (root['plugins'] case final YamlMap plugins) {
+        final pluginConfig = plugins['ilt_lints'];
+        if (pluginConfig is bool && !pluginConfig) {
+          return false;
+        } else if (pluginConfig is YamlMap) {
+          if (pluginConfig['enabled'] == false) {
+            return false;
+          }
+          inspectRulesCollection(pluginConfig['diagnostics']);
+        }
+      }
+
+      if (root['analyzer'] case final YamlMap analyzer) {
+        if (analyzer['errors'] case final YamlMap errors) {
+          for (final entry in errors.entries) {
+            final key = entry.key;
+            if (key is String && key.toLowerCase() == 'sort_widget_functions') {
+              checkRuleValue(entry.value);
+            }
+          }
+        }
+      }
+
+      if (explicitSetting != null) {
+        return explicitSetting!;
+      }
+      if (includesIltLints || !hasExplicitRuleConfig) {
+        return true;
+      }
+      return false;
+    } on Object {
+      return true;
+    }
+  }
+
+  /// Returns `true` if [node] is a class declaration that extends or implements
+  /// `Widget` (such as `StatelessWidget` or `StatefulWidget`).
+  static bool isWidgetClass(ClassDeclaration node) {
+    final element = node.declaredFragment?.element;
+    if (element != null && _isElementWidget(element, <InterfaceElement>{})) {
+      return true;
+    }
+
+    final extendsClause = node.extendsClause;
+    if (extendsClause != null && _isNamedTypeWidget(extendsClause.superclass)) {
+      return true;
+    }
+
+    final implementsClause = node.implementsClause;
+    if (implementsClause != null) {
+      for (final type in implementsClause.interfaces) {
+        if (_isNamedTypeWidget(type)) {
+          return true;
+        }
+      }
+    }
+
+    final withClause = node.withClause;
+    if (withClause != null) {
+      for (final type in withClause.mixinTypes) {
+        if (_isNamedTypeWidget(type)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /// Returns `true` if [body] belongs to a Widget [ClassDeclaration].
+  static bool isWidgetClassBody(AstNode body) {
+    final parent = body.parent;
+    return parent is ClassDeclaration && isWidgetClass(parent);
+  }
+
+  /// Returns `true` if [method] is owned by [SortWidgetFunctions] (lifecycle
+  /// methods, `build`, or instance methods prefixed with `build` / `_build`).
+  static bool isWidgetOwnedMethod(MethodDeclaration method) {
+    final category = WidgetFunctionCategory.of(method);
+    return category != null && category.isOwnedByWidgetRule;
+  }
+
+  static File? _findOptionsFile(File? startFile) {
+    var folder = startFile?.parent;
+    while (folder != null) {
+      final candidate = folder.getFile('analysis_options.yaml');
+      if (candidate.exists) {
+        return candidate;
+      }
+      final parent = folder.parent;
+      if (parent.path == folder.path) {
+        break;
+      }
+      folder = parent;
+    }
+    return null;
+  }
+
+  static bool _isElementWidget(
+    InterfaceElement element,
+    Set<InterfaceElement> visited,
+  ) {
+    if (!visited.add(element)) {
+      return false;
+    }
+    if (element.name == 'Widget') {
+      return true;
+    }
+    for (final supertype in element.allSupertypes) {
+      if (supertype.element.name == 'Widget') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static bool _isNamedTypeWidget(NamedType namedType) {
+    final name = namedType.name.lexeme;
+    if (_commonWidgetSuperclassNames.contains(name)) {
+      return true;
+    }
+    final element = namedType.element;
+    if (element is InterfaceElement) {
+      return _isElementWidget(element, <InterfaceElement>{});
+    }
+    return false;
+  }
+
+  @override
+  LintCode get diagnosticCode => code;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    final visitor = _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+  }
+}
+
+class const _Visitor(final SortWidgetFunctions rule)
+    extends SimpleAstVisitor<void> {
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    if (!SortWidgetFunctions.isWidgetClass(node)) {
+      return;
+    }
+    final body = node.body;
+    if (body is! BlockClassBody) {
+      return;
+    }
+    _checkMembers(body.members);
+  }
+
+  void _checkMembers(NodeList<ClassMember> members) {
+    WidgetFunctionCategory? maxCategory;
+    for (final member in members) {
+      if (member is! MethodDeclaration) {
+        continue;
+      }
+      final category = WidgetFunctionCategory.of(member);
+      if (category == null) {
+        continue;
+      }
+      if (maxCategory == null || category.index >= maxCategory.index) {
+        maxCategory = category;
+      } else {
+        rule.reportAtToken(
+          member.name,
+          arguments: [category.description, maxCategory.description],
+        );
+      }
+    }
+  }
+}

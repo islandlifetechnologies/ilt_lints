@@ -10,9 +10,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import '../rules/prefer_primary_constructors.dart';
 
 /// A quick fix that converts a [ClassDeclaration] to use a primary constructor.
-class PreferPrimaryConstructorsFix extends ResolvedCorrectionProducer {
-  PreferPrimaryConstructorsFix({required super.context});
-
+class PreferPrimaryConstructorsFix({required super.context})
+    extends ResolvedCorrectionProducer {
   static const _fixKind = FixKind(
     'dart.fix.preferPrimaryConstructors',
     DartFixKindPriority.standard,

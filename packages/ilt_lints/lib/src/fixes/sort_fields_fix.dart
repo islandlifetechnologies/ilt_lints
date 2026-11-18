@@ -12,9 +12,9 @@ import '../rules/sort_fields.dart';
 /// A quick fix that moves fields above methods and sorts them by [FieldScope],
 /// `final` vs non-`final` (when `final_first` is enabled), and alphabetically
 /// within each group.
-class SortFieldsFix extends ResolvedCorrectionProducer {
-  SortFieldsFix({required super.context, bool? finalFirst})
-    : _finalFirstOverride = finalFirst;
+class SortFieldsFix({required super.context, bool? finalFirst})
+    extends ResolvedCorrectionProducer {
+  this : _finalFirstOverride = finalFirst;
 
   static const _fixKind = FixKind(
     'dart.fix.sortFields',
@@ -155,25 +155,15 @@ class SortFieldsFix extends ResolvedCorrectionProducer {
   }
 }
 
-class _FieldEntry {
-  const _FieldEntry({
-    required this.isFinal,
-    required this.name,
-    required this.originalOrder,
-    required this.scope,
-    required this.slot,
-  });
+class const _FieldEntry({
+  required final bool isFinal,
+  required final String name,
+  required final int originalOrder,
+  required final FieldScope scope,
+  required final _MemberSlot slot,
+}) {}
 
-  final bool isFinal;
-  final String name;
-  final int originalOrder;
-  final FieldScope scope;
-  final _MemberSlot slot;
-}
-
-class _MemberSlot {
-  const _MemberSlot({required this.range, required this.text});
-
-  final SourceRange range;
-  final String text;
-}
+class const _MemberSlot({
+  required final SourceRange range,
+  required final String text,
+}) {}

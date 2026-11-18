@@ -8,9 +8,11 @@ import '../rules/export_library.dart';
 
 /// A quick fix that adds missing `export` directives to a configured exporter
 /// library file in alphabetical order.
-class ExportLibraryFix extends ResolvedCorrectionProducer {
-  ExportLibraryFix({required super.context, List<ExportLibraryOption>? options})
-    : _optionsOverride = options;
+class ExportLibraryFix({
+  required super.context,
+  List<ExportLibraryOption>? options,
+}) extends ResolvedCorrectionProducer {
+  this : _optionsOverride = options;
 
   static const _fixKind = FixKind(
     'dart.fix.exportLibrary',

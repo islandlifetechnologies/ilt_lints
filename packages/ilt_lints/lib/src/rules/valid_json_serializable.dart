@@ -8,35 +8,20 @@ import 'package:analyzer/error/error.dart';
 import 'package:path/path.dart' as p;
 
 /// Result of analyzing a [ClassDeclaration] for [ValidJsonSerializable].
-class ValidJsonSerializableAnalysis {
-  const ValidJsonSerializableAnalysis({
-    required this.className,
-    required this.classNameToken,
-    required this.classNode,
-    required this.existingFromJson,
-    required this.existingToJson,
-    this.expectedPartUri,
-    required this.fromJsonFunctionName,
-    required this.hasPrimaryConstructor,
-    required this.needsFromJson,
-    this.needsPartDirective = false,
-    required this.needsToJson,
-    required this.toJsonFunctionName,
-  });
-
-  final String className;
-  final Token classNameToken;
-  final ClassDeclaration classNode;
-  final ClassMember? existingFromJson;
-  final MethodDeclaration? existingToJson;
-  final String? expectedPartUri;
-  final String fromJsonFunctionName;
-  final bool hasPrimaryConstructor;
-  final bool needsFromJson;
-  final bool needsPartDirective;
-  final bool needsToJson;
-  final String toJsonFunctionName;
-
+class const ValidJsonSerializableAnalysis({
+  required final String className,
+  required final Token classNameToken,
+  required final ClassDeclaration classNode,
+  required final ClassMember? existingFromJson,
+  required final MethodDeclaration? existingToJson,
+  final String? expectedPartUri,
+  required final String fromJsonFunctionName,
+  required final bool hasPrimaryConstructor,
+  required final bool needsFromJson,
+  final bool needsPartDirective = false,
+  required final bool needsToJson,
+  required final String toJsonFunctionName,
+}) {
   bool get hasIssues => needsPartDirective || needsFromJson || needsToJson;
 }
 
@@ -46,8 +31,8 @@ class ValidJsonSerializableAnalysis {
 ///    when `createFactory: true` (or defaulted to true by JsonSerializable).
 /// 3. A `toJson` method calling `_$<ClassName>ToJson` when `createToJson: true`
 ///    (or defaulted to true by JsonSerializable).
-class ValidJsonSerializable extends AnalysisRule {
-  ValidJsonSerializable()
+class ValidJsonSerializable() extends AnalysisRule {
+  this
     : super(
         description: 'Ensure @JsonSerializable classes include the generated part file and define valid fromJson and toJson methods calling the generated functions.',
         name: code.lowerCaseName,
@@ -249,10 +234,8 @@ class ValidJsonSerializable extends AnalysisRule {
   }
 }
 
-class _FunctionCallFinder extends RecursiveAstVisitor<void> {
-  _FunctionCallFinder(this.targetName);
-
-  final String targetName;
+class _FunctionCallFinder(final String targetName)
+    extends RecursiveAstVisitor<void> {
   var found = false;
 
   @override
@@ -276,12 +259,10 @@ class _FunctionCallFinder extends RecursiveAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule, {required this.filePath});
-
-  final String filePath;
-  final ValidJsonSerializable rule;
-
+class const _Visitor(
+  final ValidJsonSerializable rule, {
+  required final String filePath,
+}) extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     final analysis = ValidJsonSerializable.analyzeClass(
