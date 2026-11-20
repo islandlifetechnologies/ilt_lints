@@ -184,13 +184,13 @@ Ensures functions, getters, and setters within a type body (classes, mixins, enu
 11. Public instance functions
 12. Private instance functions
 
-Fields, constructors, and operators are ignored. When `sort_widget_functions` is enabled on a Widget class, functions owned by `sort_widget_functions` (`initState`, `didChangeDependencies`, `didUpdateWidget`, `deactivate`, `dispose`, `build*`, `_build*`, and `build`) are deferred to `sort_widget_functions`. Includes an automated quick fix (`Sort functions by scope`).
+Fields, constructors, and operators are ignored. When `sort_widget_functions` is enabled on a `Widget` or `State` class, functions owned by `sort_widget_functions` (`initState`, `didChangeDependencies`, `didUpdateWidget`, `deactivate`, `dispose`, `build*`, `_build*`, and `build`) are deferred to `sort_widget_functions`. Includes an automated quick fix (`Sort functions by scope`).
 
 ### `sort_functions_alphabetically`
 
 Ensures functions, getters, and setters within a type body are sorted alphabetically (lexicographically) within each scope (e.g., all public static getters alphabetically, all public static setters alphabetically, all public static functions alphabetically, etc.).
 
-Fields, constructors, and operators are ignored. When `sort_widget_functions` is enabled on a Widget class, functions owned by `sort_widget_functions` (`initState`, `didChangeDependencies`, `didUpdateWidget`, `deactivate`, `dispose`, `build*`, `_build*`, and `build`) are deferred to `sort_widget_functions`. Includes an automated quick fix (`Sort functions alphabetically`).
+Fields, constructors, and operators are ignored. When `sort_widget_functions` is enabled on a `Widget` or `State` class, functions owned by `sort_widget_functions` (`initState`, `didChangeDependencies`, `didUpdateWidget`, `deactivate`, `dispose`, `build*`, `_build*`, and `build`) are deferred to `sort_widget_functions`. Includes an automated quick fix (`Sort functions alphabetically`).
 
 ### `sort_named_parameters`
 
@@ -213,7 +213,7 @@ Includes an automated quick fix (`Sort named parameters alphabetically`).
 
 ### `sort_widget_functions`
 
-Ensures functions within a `Widget` subclass are sorted in lifecycle and build order:
+Ensures functions within a `Widget` or `State` subclass are sorted in lifecycle and build order:
 
 1. `initState`
 2. `didChangeDependencies`
@@ -225,7 +225,7 @@ Ensures functions within a `Widget` subclass are sorted in lifecycle and build o
 8. Private functions prefixed with `_build` (`_build*`)
 9. `build`
 
-Classes that do not extend or implement `Widget` are ignored. Includes an automated quick fix (`Sort widget functions`).
+Classes that do not extend or implement `Widget` or `State` are ignored. Includes an automated quick fix (`Sort widget functions`).
 
 ### `use_clock`
 

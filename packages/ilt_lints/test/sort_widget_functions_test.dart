@@ -72,7 +72,7 @@ class MyWidget extends Widget {
   void _buildFooter() {}
 }
 ''',
-      [lint(83, 7), lint(103, 11), lint(127, 12)],
+      [lint(65, 5), lint(83, 7), lint(103, 11), lint(127, 12)],
     );
   }
 
@@ -87,7 +87,7 @@ class MyScreen extends CustomBaseWidget {
   void initState() {}
 }
 ''',
-      [lint(143, 9)],
+      [lint(125, 5), lint(143, 9)],
     );
   }
 
@@ -184,7 +184,7 @@ class MyWidget extends StatelessWidget {
   void initState() {}
 }
 ''',
-      [lint(143, 10), lint(166, 15), lint(194, 21), lint(228, 9)],
+      [lint(123, 7), lint(143, 10), lint(166, 15), lint(194, 21), lint(228, 9)],
     );
   }
 
@@ -215,7 +215,7 @@ class MyWidget extends Widget {
   void build() {}
 }
 ''',
-      [lint(91, 11)],
+      [lint(65, 13), lint(91, 11)],
     );
   }
 
@@ -231,7 +231,7 @@ class MyWidget extends Widget {
   void build() {}
 }
 ''',
-      [lint(111, 13)],
+      [lint(87, 11), lint(111, 13)],
     );
   }
 
@@ -249,6 +249,70 @@ class MyWidget extends Widget {
 ''',
       [lint(91, 9), lint(113, 7)],
     );
+  }
+
+  Future<void>
+  test_stateClassDiagnosticsAndQuickFixOnLifecycleFunctions() async {
+    const original = r'''
+abstract class Widget {}
+abstract class StatefulWidget extends Widget {}
+abstract class State<T extends StatefulWidget> {}
+
+class _MyWidgetState extends State<MyWidget> {
+  void build() {}
+
+  void regularHelper() {}
+
+  void dispose() {}
+
+  void deactivate() {}
+
+  void didUpdateWidget() {}
+
+  void didChangeDependencies() {}
+
+  void initState() {}
+}
+
+class MyWidget extends StatefulWidget {}
+''';
+
+    await assertDiagnostics(original, [
+      lint(178, 5),
+      lint(197, 13),
+      lint(224, 7),
+      lint(245, 10),
+      lint(269, 15),
+      lint(298, 21),
+      lint(333, 9),
+    ]);
+
+    const expected = r'''
+abstract class Widget {}
+abstract class StatefulWidget extends Widget {}
+abstract class State<T extends StatefulWidget> {}
+
+class _MyWidgetState extends State<MyWidget> {
+  void initState() {}
+
+  void didChangeDependencies() {}
+
+  void didUpdateWidget() {}
+
+  void deactivate() {}
+
+  void dispose() {}
+
+  void regularHelper() {}
+
+  void build() {}
+}
+
+class MyWidget extends StatefulWidget {}
+''';
+
+    final fixed = await _applyFix(original);
+    expect(fixed, expected);
   }
 
   Future<String> _applyFix(String content) async {

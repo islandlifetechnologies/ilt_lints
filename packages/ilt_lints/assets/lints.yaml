@@ -295,7 +295,8 @@ lints:
       mixins, enums, extensions, and extension types) are sorted alphabetically
       (lexicographically) within each scope. Fields, constructors, and operators
       are ignored. When `sort_widget_functions` is enabled, functions owned by
-      `sort_widget_functions` in `Widget` classes are deferred to that rule.
+      `sort_widget_functions` in `Widget` and `State` classes are deferred to
+      that rule.
     do: Sort functions, getters, and setters alphabetically within each scope.
     bad:
       - |
@@ -344,8 +345,8 @@ lints:
       public getters, public setters, private getters, private setters, public
       instance functions, and private instance functions. Fields, constructors,
       and operators are ignored. When `sort_widget_functions` is enabled,
-      functions owned by `sort_widget_functions` in `Widget` classes are
-      deferred to that rule.
+      functions owned by `sort_widget_functions` in `Widget` and `State` classes
+      are deferred to that rule.
     do: >-
       Sort functions, getters, and setters by static/instance and visibility
       scope.
@@ -443,11 +444,11 @@ lints:
     tags:
       - style
     description: >-
-      Ensures functions within a `Widget` subclass are sorted in widget
-      lifecycle and build order: `initState`, `didChangeDependencies`,
+      Ensures functions within a `Widget` or `State` subclass are sorted in
+      widget lifecycle and build order: `initState`, `didChangeDependencies`,
       `didUpdateWidget`, `deactivate`, `dispose`, other functions/getters/setters,
       public `build*` functions, private `_build*` functions, and finally
-      `build`. Non-widget classes pass this rule automatically.
+      `build`. Non-widget and non-state classes pass this rule automatically.
     do: >-
       Sort widget lifecycle methods first (`initState`, `didChangeDependencies`,
       `didUpdateWidget`, `deactivate`, `dispose`), followed by other functions,

@@ -88,6 +88,16 @@ class SortWidgetFunctions() extends AnalysisRule {
     correctionMessage: 'Try sorting widget functions in lifecycle order.',
   );
 
+  static const _commonStateSuperclassNames = {
+    'AnimatedWidgetBaseState',
+    'ConsumerState',
+    'HookConsumerState',
+    'RestorationMixin',
+    'SingleTickerProviderStateMixin',
+    'State',
+    'TickerProviderStateMixin',
+  };
+
   static const _commonWidgetSuperclassNames = {
     'AnimatedWidget',
     'ConsumerStatefulWidget',
@@ -240,22 +250,25 @@ class SortWidgetFunctions() extends AnalysisRule {
   }
 
   /// Returns `true` if [node] is a class declaration that extends or implements
-  /// `Widget` (such as `StatelessWidget` or `StatefulWidget`).
+  /// `Widget` (such as `StatelessWidget` or `StatefulWidget`) or `State` (such
+  /// as `State<MyWidget>`).
   static bool isWidgetClass(ClassDeclaration node) {
     final element = node.declaredFragment?.element;
-    if (element != null && _isElementWidget(element, <InterfaceElement>{})) {
+    if (element != null &&
+        _isElementWidgetOrState(element, <InterfaceElement>{})) {
       return true;
     }
 
     final extendsClause = node.extendsClause;
-    if (extendsClause != null && _isNamedTypeWidget(extendsClause.superclass)) {
+    if (extendsClause != null &&
+        _isNamedTypeWidgetOrState(extendsClause.superclass)) {
       return true;
     }
 
     final implementsClause = node.implementsClause;
     if (implementsClause != null) {
       for (final type in implementsClause.interfaces) {
-        if (_isNamedTypeWidget(type)) {
+        if (_isNamedTypeWidgetOrState(type)) {
           return true;
         }
       }
@@ -264,7 +277,7 @@ class SortWidgetFunctions() extends AnalysisRule {
     final withClause = node.withClause;
     if (withClause != null) {
       for (final type in withClause.mixinTypes) {
-        if (_isNamedTypeWidget(type)) {
+        if (_isNamedTypeWidgetOrState(type)) {
           return true;
         }
       }
@@ -273,7 +286,7 @@ class SortWidgetFunctions() extends AnalysisRule {
     return false;
   }
 
-  /// Returns `true` if [body] belongs to a Widget [ClassDeclaration].
+  /// Returns `true` if [body] belongs to a Widget or State [ClassDeclaration].
   static bool isWidgetClassBody(AstNode body) {
     final parent = body.parent;
     return parent is ClassDeclaration && isWidgetClass(parent);
@@ -320,6 +333,29 @@ class SortWidgetFunctions() extends AnalysisRule {
     return false;
   }
 
+  static bool _isElementWidgetOrState(
+    InterfaceElement element,
+    Set<InterfaceElement> visited,
+  ) {
+    if (!visited.add(element)) {
+      return false;
+    }
+    if (element.name == 'Widget') {
+      return true;
+    }
+    if (_isStateInterfaceElement(element)) {
+      return true;
+    }
+    for (final supertype in element.allSupertypes) {
+      final superElement = supertype.element;
+      if (superElement.name == 'Widget' ||
+          _isStateInterfaceElement(superElement)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   static bool _isNamedTypeWidget(NamedType namedType) {
     final name = namedType.name.lexeme;
     if (_commonWidgetSuperclassNames.contains(name)) {
@@ -330,6 +366,48 @@ class SortWidgetFunctions() extends AnalysisRule {
       return _isElementWidget(element, <InterfaceElement>{});
     }
     return false;
+  }
+
+  static bool _isNamedTypeWidgetOrState(NamedType namedType) {
+    if (_isNamedTypeWidget(namedType)) {
+      return true;
+    }
+    final name = namedType.name.lexeme;
+    if (_commonStateSuperclassNames.contains(name)) {
+      final typeArgs = namedType.typeArguments?.arguments;
+      if (typeArgs != null && typeArgs.isNotEmpty) {
+        final firstArg = typeArgs.first;
+        if (firstArg is NamedType) {
+          final argElement = firstArg.element;
+          if (argElement is InterfaceElement) {
+            return _isElementWidget(argElement, <InterfaceElement>{});
+          }
+        }
+      }
+      return true;
+    }
+    final element = namedType.element;
+    if (element is InterfaceElement) {
+      return _isElementWidgetOrState(element, <InterfaceElement>{});
+    }
+    return false;
+  }
+
+  static bool _isStateInterfaceElement(InterfaceElement element) {
+    if (!_commonStateSuperclassNames.contains(element.name)) {
+      return false;
+    }
+    for (final typeParam in element.typeParameters) {
+      final bound = typeParam.bound;
+      if (bound != null) {
+        final boundElement = bound.element;
+        if (boundElement is InterfaceElement &&
+            !_isElementWidget(boundElement, <InterfaceElement>{})) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   @override
@@ -360,7 +438,7 @@ class const _Visitor(final SortWidgetFunctions rule)
   }
 
   void _checkMembers(NodeList<ClassMember> members) {
-    WidgetFunctionCategory? maxCategory;
+    final entries = <(MethodDeclaration, WidgetFunctionCategory)>[];
     for (final member in members) {
       if (member is! MethodDeclaration) {
         continue;
@@ -369,12 +447,37 @@ class const _Visitor(final SortWidgetFunctions rule)
       if (category == null) {
         continue;
       }
-      if (maxCategory == null || category.index >= maxCategory.index) {
-        maxCategory = category;
+      entries.add((member, category));
+    }
+
+    if (entries.length < 2) {
+      return;
+    }
+
+    final reported = <MethodDeclaration>{};
+    var maxEntry = entries.first;
+    for (var i = 1; i < entries.length; i++) {
+      final entry = entries[i];
+      if (entry.$2.index >= maxEntry.$2.index) {
+        maxEntry = entry;
       } else {
+        reported.add(entry.$1);
         rule.reportAtToken(
-          member.name,
-          arguments: [category.description, maxCategory.description],
+          entry.$1.name,
+          arguments: [entry.$2.description, maxEntry.$2.description],
+        );
+      }
+    }
+
+    var minEntry = entries.last;
+    for (var i = entries.length - 2; i >= 0; i--) {
+      final entry = entries[i];
+      if (entry.$2.index <= minEntry.$2.index) {
+        minEntry = entry;
+      } else if (entry.$2.isOwnedByWidgetRule && !reported.contains(entry.$1)) {
+        rule.reportAtToken(
+          entry.$1.name,
+          arguments: [minEntry.$2.description, entry.$2.description],
         );
       }
     }

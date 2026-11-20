@@ -1,6 +1,10 @@
+## 2.2.1
+
+- Updated `sort_widget_functions` to trigger on State objects that build for Widgets.
+
 ## 2.2.0
 
-- `sort_widget_functions` -- Sort widget lifecycle and build functions in `Widget` classes, deferring widget-owned functions from `sort_functions_by_scope` and `sort_functions_alphabetically` when enabled.
+- `sort_widget_functions` -- Sort widget lifecycle and build functions in `Widget` deferring widget-owned functions from `sort_functions_by_scope` and `sort_functions_alphabetically` when enabled.
 
 ## 2.1.0
 
