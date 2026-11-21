@@ -1,7 +1,7 @@
 name: ilt_lints
 description: Lints for ILT repos
 repository: https://github.com/islandlifetechnologies/ilt_lints
-version: 2.2.1
+version: 2.3.0
 
 resolution: workspace
 environment:
@@ -19,6 +19,8 @@ dependencies:
 
 dev_dependencies:
   analyzer_testing: ^0.4.5
+  file: ^7.0.1
+  io_ext: ^1.0.1
   jaspr_lint_builder: ^1.0.0
   test: ^1.33.0
   test_reflective_loader: ^0.6.0

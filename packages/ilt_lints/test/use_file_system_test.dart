@@ -2,6 +2,7 @@
 
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
@@ -45,6 +46,53 @@ File openFile(String path) => File(path);
     await assertNoDiagnosticsInFile(testFolderFilePath);
   }
 
+  Future<void> test_directorySystemTempChainedReported() async {
+    await assertDiagnostics(
+      r'''
+import 'dart:io';
+
+Future<String> makeTemp() async {
+  final dir = await Directory.systemTemp.createTemp('x');
+  return dir.path;
+}
+''',
+      [lint(73, 20), error(diag.undefinedStaticMemberReadNotFound, 83, 10)],
+    );
+  }
+
+  Future<void> test_directorySystemTempReported() async {
+    await assertDiagnostics(
+      r'''
+import 'dart:io';
+
+String tempPath() => Directory.systemTemp.path;
+''',
+      [lint(40, 20), error(diag.undefinedStaticMemberReadNotFound, 50, 10)],
+    );
+  }
+
+  Future<void> test_quickFixChainedSystemTemp() async {
+    const original = r'''
+import 'dart:io';
+
+Future<String> makeTemp() async {
+  final dir = await Directory.systemTemp.createTemp('x');
+  return dir.path;
+}
+''';
+
+    const expected = r'''
+import 'package:io_ext/io_ext.dart';
+
+Future<String> makeTemp() async {
+  final dir = await fs.systemTempDirectory.createTemp('x');
+  return dir.path;
+}
+''';
+
+    expect(await _applyFix(original), expected);
+  }
+
   Future<void> test_quickFixClassWithPrimaryConstructor() async {
     const original = r'''
 import 'dart:io';
@@ -61,58 +109,19 @@ class PersistenceRepository({
 
     const expected = r'''
 import 'package:file/file.dart';
-import 'package:file/local.dart';
-import 'package:meta/meta.dart';
+import 'package:io_ext/io_ext.dart';
 
 class PersistenceRepository({
-  @visibleForTesting final FileSystem _fs = const LocalFileSystem(),
   required final Directory root,
 }) {
   void delete(String id) {
-    final file = _fs.file('${root.path}/$id.yaml');
-    final dir = _fs.directory(root.path);
+    final file = fs.file('${root.path}/$id.yaml');
+    final dir = fs.directory(root.path);
   }
 }
 ''';
 
-    final fixed = await _applyFix(original);
-    expect(fixed, expected);
-  }
-
-  Future<void> test_quickFixClassWithStandardConstructor() async {
-    const original = r'''
-import 'dart:io';
-
-class FileService {
-  FileService({required this.rootPath});
-
-  final String rootPath;
-
-  void run() {
-    final file = File('$rootPath/data.txt');
-  }
-}
-''';
-
-    const expected = r'''
-import 'package:file/file.dart';
-import 'package:file/local.dart';
-import 'package:meta/meta.dart';
-
-class FileService {
-  FileService({@visibleForTesting this._fs = const LocalFileSystem(), required this.rootPath});
-
-  final String rootPath;
-  final FileSystem _fs;
-
-  void run() {
-    final file = _fs.file('$rootPath/data.txt');
-  }
-}
-''';
-
-    final fixed = await _applyFix(original);
-    expect(fixed, expected);
+    expect(await _applyFix(original), expected);
   }
 
   Future<void> test_quickFixHidesDartIoWhenOtherSymbolsUsed() async {
@@ -128,46 +137,18 @@ void logAndRead(String path) {
     const expected = r'''
 import 'dart:io' hide Directory, File, FileSystemEntity, Link;
 
-import 'package:file/file.dart';
-import 'package:file/local.dart';
-import 'package:meta/meta.dart';
+import 'package:io_ext/io_ext.dart';
 
-void logAndRead(String path, {@visibleForTesting FileSystem fs = const LocalFileSystem()}) {
+void logAndRead(String path) {
   stdout.writeln(path);
   final file = fs.file(path);
 }
 ''';
 
-    final fixed = await _applyFix(original);
-    expect(fixed, expected);
+    expect(await _applyFix(original), expected);
   }
 
-  Future<void> test_quickFixTopLevelFunction() async {
-    const original = r'''
-import 'dart:io';
-
-File loadConfig(String path, {required bool create}) {
-  final dir = Directory.current;
-  return File('${dir.path}/$path');
-}
-''';
-
-    const expected = r'''
-import 'package:file/file.dart';
-import 'package:file/local.dart';
-import 'package:meta/meta.dart';
-
-File loadConfig(String path, {required bool create, @visibleForTesting FileSystem fs = const LocalFileSystem()}) {
-  final dir = fs.currentDirectory;
-  return fs.file('${dir.path}/$path');
-}
-''';
-
-    final fixed = await _applyFix(original);
-    expect(fixed, expected);
-  }
-
-  Future<void> test_quickFixWithIoExtImported() async {
+  Future<void> test_quickFixKeepsExistingIoExtImport() async {
     const original = r'''
 import 'dart:io';
 
@@ -182,7 +163,6 @@ class MyService {
 ''';
 
     const expected = r'''
-import 'package:file/file.dart';
 import 'package:io_ext/io_ext.dart';
 
 class MyService {
@@ -193,8 +173,30 @@ class MyService {
 }
 ''';
 
-    final fixed = await _applyFix(original);
-    expect(fixed, expected);
+    expect(await _applyFix(original), expected);
+  }
+
+  Future<void> test_quickFixTopLevelFunction() async {
+    const original = r'''
+import 'dart:io';
+
+File loadConfig(String path, {required bool create}) {
+  final dir = Directory.current;
+  return File('${dir.path}/$path');
+}
+''';
+
+    const expected = r'''
+import 'package:file/file.dart';
+import 'package:io_ext/io_ext.dart';
+
+File loadConfig(String path, {required bool create}) {
+  final dir = fs.currentDirectory;
+  return fs.file('${dir.path}/$path');
+}
+''';
+
+    expect(await _applyFix(original), expected);
   }
 
   Future<String> _applyFix(String content) async {

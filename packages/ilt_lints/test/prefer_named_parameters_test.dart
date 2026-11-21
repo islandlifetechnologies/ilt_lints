@@ -199,6 +199,25 @@ class const User({required String firstName, required String lastName, int? age}
 ''');
   }
 
+  Future<void> test_typedefsAndAnonymousFunctionsAreNotFlagged() async {
+    await assertNoDiagnostics(r'''
+typedef Foo = int Function(bool ascending, dynamic a, dynamic b);
+
+class Client {
+  bool Function(Object, String, int)? badCertificateCallback;
+}
+
+void main() {
+  final f = (int a, int b, int c) => a;
+  final g = (_, _, _) => true;
+  final client = Client()..badCertificateCallback = (_, _, _) => true;
+  f(1, 2, 3);
+  g(1, 2, 3);
+  client.badCertificateCallback?.call(Object(), '', 0);
+}
+''');
+  }
+
   Future<void> test_userConstructorWithOptionalNullableAgeDiagnostics() async {
     await assertDiagnostics(
       r'''

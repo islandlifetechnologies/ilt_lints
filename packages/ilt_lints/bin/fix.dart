@@ -53,6 +53,11 @@ Future<void> main(List<String> args) async {
         ruleFactory: SortNamedParameters.new,
       ),
       RuleFixEntry(
+        fixGenerator: SortWidgetParametersFix.new,
+        name: SortWidgetParameters.code.lowerCaseName,
+        ruleFactory: SortWidgetParameters.new,
+      ),
+      RuleFixEntry(
         fixGenerator: UseClockFix.new,
         name: UseClock.code.lowerCaseName,
         ruleFactory: UseClock.new,

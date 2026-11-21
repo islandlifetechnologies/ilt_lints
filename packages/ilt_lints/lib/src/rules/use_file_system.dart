@@ -9,19 +9,20 @@ import 'package:analyzer/file_system/file_system.dart';
 
 /// A lint rule that flags direct usages of `dart:io` file system types and
 /// constructors (`File`, `Directory`, `FileSystemEntity`, `Link`) in files
-/// under `lib/` and recommends using `FileSystem` from `package:file/file.dart`.
+/// under `lib/` (including `Directory.current` and `Directory.systemTemp`) and
+/// recommends using the overridable `fs` accessor from `package:io_ext`.
 class UseFileSystem() extends AnalysisRule {
   this
     : super(
-        description: 'Use FileSystem from package:file instead of dart:io File, Directory, and FileSystemEntity.',
+        description: "Use 'fs' from package:io_ext (a package:file FileSystem) instead of dart:io File, Directory, and FileSystemEntity.",
         name: code.lowerCaseName,
       );
 
   static const code = LintCode(
     'use_file_system',
-    "Use 'FileSystem' from 'package:file/file.dart' instead of 'dart:io' '{0}'.",
+    "Use 'fs' from 'package:io_ext/io_ext.dart' instead of 'dart:io' '{0}'.",
     correctionMessage:
-        "Try using a 'FileSystem' instance from 'package:file/file.dart'.",
+        "Try using the 'fs' FileSystem from 'package:io_ext/io_ext.dart'.",
   );
 
   static const targetTypeNames = {
@@ -339,12 +340,19 @@ class UseFileSystem() extends AnalysisRule {
 
     if (node is PrefixedIdentifier) {
       final parent = node.parent;
-      if (parent is ConstructorName ||
-          parent is NamedType ||
-          parent is MethodInvocation ||
-          parent is PropertyAccess ||
-          parent is InstanceCreationExpression ||
-          parent is ConstructorReference) {
+      // `Directory.systemTemp.createTemp()` and `Directory.systemTemp.path`
+      // have the property access as the target of a larger expression, which
+      // must still be flagged.
+      final isTarget =
+          (parent is MethodInvocation && parent.target == node) ||
+          (parent is PropertyAccess && parent.target == node);
+      if (!isTarget &&
+          (parent is ConstructorName ||
+              parent is NamedType ||
+              parent is MethodInvocation ||
+              parent is PropertyAccess ||
+              parent is InstanceCreationExpression ||
+              parent is ConstructorReference)) {
         return null;
       }
       if (node.prefix.name == 'Directory' &&
@@ -361,10 +369,6 @@ class UseFileSystem() extends AnalysisRule {
     }
 
     if (node is PropertyAccess) {
-      final parent = node.parent;
-      if (parent is MethodInvocation && parent.target == node) {
-        return null;
-      }
       final target = node.target;
       if (target != null &&
           _extractTargetTypeName(target) == 'Directory' &&

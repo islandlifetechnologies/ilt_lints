@@ -8,6 +8,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 import '../rules/sort_named_parameters.dart';
+import '../rules/sort_widget_parameters.dart';
 
 /// A quick fix that sorts non-ignored named parameters in a
 /// [FormalParameterList] or named arguments in an [ArgumentList]
@@ -59,6 +60,17 @@ class SortNamedParametersFix({
     final ignoredNames = {..._extraIgnore, ...fileOptions.ignore};
     final requiredFirst = _extraRequiredFirst || fileOptions.requiredFirst;
 
+    final deferWidget =
+        SortWidgetParameters.isRuleEnabled(
+          currentFile,
+          optionsFile: analysisContext.contextRoot.optionsFile,
+        ) &&
+        (targetNode is FormalParameterList
+            ? SortWidgetParameters.isWidgetParameterList(targetNode)
+            : SortWidgetParameters.isWidgetArgumentList(
+                targetNode as ArgumentList,
+              ));
+
     final entries = <_SortableNamedItem>[];
     if (targetNode is FormalParameterList) {
       for (final parameter in targetNode.parameters) {
@@ -71,7 +83,9 @@ class SortNamedParametersFix({
         }
         final rawName = nameToken.lexeme;
         final name = SortNamedParameters.normalizeParameterName(rawName);
-        if (ignoredNames.contains(rawName) || ignoredNames.contains(name)) {
+        if (ignoredNames.contains(rawName) ||
+            ignoredNames.contains(name) ||
+            (deferWidget && SortWidgetParameters.isTrailingName(name))) {
           continue;
         }
         final itemRange = _rangeForItem(parameter);
@@ -91,7 +105,8 @@ class SortNamedParametersFix({
           continue;
         }
         final name = argument.name.lexeme;
-        if (ignoredNames.contains(name)) {
+        if (ignoredNames.contains(name) ||
+            (deferWidget && SortWidgetParameters.isTrailingName(name))) {
           continue;
         }
         final itemRange = _rangeForItem(argument);

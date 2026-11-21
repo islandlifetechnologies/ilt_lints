@@ -7,6 +7,8 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:yaml/yaml.dart';
 
+import 'sort_widget_parameters.dart';
+
 /// Resolved custom configuration options for [SortNamedParameters].
 class const SortNamedParametersOptions({
   final Set<String> ignore = const {},
@@ -175,6 +177,10 @@ class SortNamedParameters({
     final effectiveRequiredFirst = requiredFirst || fileOptions.requiredFirst;
     final visitor = _Visitor(
       this,
+      deferWidgetParameters: SortWidgetParameters.isRuleEnabled(
+        context.definingUnit.file,
+        optionsFile: optionsFile,
+      ),
       ignoredNames: effectiveIgnore,
       requiredFirst: effectiveRequiredFirst,
     );
@@ -185,11 +191,15 @@ class SortNamedParameters({
 
 class const _Visitor(
   final SortNamedParameters rule, {
+  required final bool deferWidgetParameters,
   required final Set<String> ignoredNames,
   required final bool requiredFirst,
 }) extends SimpleAstVisitor<void> {
   @override
   void visitArgumentList(ArgumentList node) {
+    final deferWidget =
+        deferWidgetParameters &&
+        SortWidgetParameters.isWidgetArgumentList(node);
     String? maxName;
     for (final argument in node.arguments) {
       if (argument is! NamedArgument) {
@@ -197,7 +207,8 @@ class const _Visitor(
       }
       final nameToken = argument.name;
       final name = nameToken.lexeme;
-      if (ignoredNames.contains(name)) {
+      if (ignoredNames.contains(name) ||
+          (deferWidget && SortWidgetParameters.isTrailingName(name))) {
         continue;
       }
       if (maxName == null || name.compareTo(maxName) >= 0) {
@@ -210,6 +221,9 @@ class const _Visitor(
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
+    final deferWidget =
+        deferWidgetParameters &&
+        SortWidgetParameters.isWidgetParameterList(node);
     String? maxName;
     String? maxRequiredName;
     String? maxOptionalName;
@@ -225,7 +239,9 @@ class const _Visitor(
       }
       final rawName = nameToken.lexeme;
       final name = SortNamedParameters.normalizeParameterName(rawName);
-      if (ignoredNames.contains(rawName) || ignoredNames.contains(name)) {
+      if (ignoredNames.contains(rawName) ||
+          ignoredNames.contains(name) ||
+          (deferWidget && SortWidgetParameters.isTrailingName(name))) {
         continue;
       }
 

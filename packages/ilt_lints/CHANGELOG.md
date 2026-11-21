@@ -1,3 +1,8 @@
+## 2.3.0
+
+- `sort_widget_parameters` -- Sort `child`, `children`, `builder`, and `itemBuilder` named parameters last (alphabetically) in `Widget` constructors and invocations. Enabled by default, includes a quick fix, and takes priority over `sort_named_parameters`.
+- `use_file_system` -- Updated the lint and quick fix to use `fs` from `package:io_ext/io_ext.dart` and to detect and rewrite `Directory.systemTemp` to `fs.systemTempDirectory`.
+
 ## 2.2.1
 
 - Updated `sort_widget_functions` to trigger on State objects that build for Widgets.

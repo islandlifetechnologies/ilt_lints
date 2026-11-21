@@ -457,14 +457,20 @@ class PreferConstConstructors() extends AnalysisRule {
     }
 
     if (expr is PrefixedIdentifier) {
-      if (allowedParamNames.contains(expr.prefix.name) &&
-          expr.identifier.name == 'length') {
-        return true;
+      if (allowedParamNames.contains(expr.prefix.name)) {
+        // Only `parameter.length` is allowed (e.g. on a String); any other
+        // property of a parameter is not a constant expression.
+        return expr.identifier.name == 'length';
       }
       return _isConstElement(expr.identifier.element);
     }
 
     if (expr is PropertyAccess) {
+      final target = expr.target;
+      if (target is SimpleIdentifier &&
+          allowedParamNames.contains(target.name)) {
+        return expr.propertyName.name == 'length';
+      }
       return _isConstElement(expr.propertyName.element);
     }
 
@@ -564,11 +570,13 @@ class PreferConstConstructors() extends AnalysisRule {
     }
 
     if (expr is InstanceCreationExpression) {
-      if (!expr.isConst && !inConstContext) {
+      // `expr.isConst` may be true merely because the analyzer places the
+      // expression in a const context, so rely on the syntactic keyword.
+      if (expr.keyword?.type != Keyword.CONST && !inConstContext) {
         return false;
       }
       final ctorElement = expr.constructorName.element;
-      if (ctorElement != null && !ctorElement.isConst) {
+      if (ctorElement == null || !ctorElement.isConst) {
         return false;
       }
       for (final arg in expr.argumentList.arguments) {

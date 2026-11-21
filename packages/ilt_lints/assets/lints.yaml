@@ -495,6 +495,44 @@ lints:
           diagnostics:
             sort_widget_functions: true
 
+  - name: sort_widget_parameters
+    tags:
+      - style
+    description: >-
+      Ensures the `child`, `children`, `builder`, and `itemBuilder` named
+      parameters of a `Widget` constructor (and the matching named arguments of
+      widget constructor invocations) come after all other named parameters,
+      sorted alphabetically among themselves. Takes priority over
+      `sort_named_parameters` for these parameters.
+    do: >-
+      Place `builder`, `child`, `children`, and `itemBuilder` last, in
+      alphabetical order.
+    bad:
+      - |
+        class MyWidget extends StatelessWidget {
+          // `child` comes before other named parameters.
+          const MyWidget({super.key, required this.child, required this.title});
+
+          final Widget child;
+          final String title;
+        }
+    good:
+      - |
+        class MyWidget extends StatelessWidget {
+          // `child` comes last.
+          const MyWidget({super.key, required this.title, required this.child});
+
+          final Widget child;
+          final String title;
+        }
+    quick_fix: true
+    enable: |
+      plugins:
+        ilt_lints:
+          version: ^2.0.0
+          diagnostics:
+            sort_widget_parameters: true
+
   - name: use_clock
     tags:
       - testability
@@ -533,30 +571,28 @@ lints:
       - testability
     description: >-
       Detects direct usages of `dart:io` `File`, `Directory`,
-      `FileSystemEntity`, and `Link` in files inside the `lib/` folder (ignoring
-      `test/` and other non-`lib/` directories) and requires using `FileSystem`
-      from `package:file/file.dart` so file system operations can be mocked in
-      tests.
+      `FileSystemEntity`, and `Link` (including `Directory.current` and
+      `Directory.systemTemp`) in files inside the `lib/` folder (ignoring
+      `test/` and other non-`lib/` directories) and requires using `fs` from
+      `package:io_ext/io_ext.dart` (a `FileSystem` from `package:file/file.dart`)
+      so file system operations can be overridden in tests with `withFileSystem`.
     do: >-
-      Use `FileSystem` from `package:file/file.dart` instead of `dart:io` 
-      `File`, `Directory`, `FileSystemEntity`, and `Link` in `lib/` files.
+      Use `fs` from `package:io_ext/io_ext.dart` and `File`, `Directory`,
+      `FileSystemEntity`, and `Link` from `package:file/file.dart` instead of
+      `dart:io` in `lib/` files.
     bad:
       - |
         import 'dart:io';
 
-        // Directly instantiates `dart:io` `File`, tying code to the host file system.
-        File openFile(String path) => File(path);
+        // Directly uses `dart:io` `File` and `Directory.systemTemp`, tying code to the host file system.
+        File openTempFile(String name) => File('${Directory.systemTemp.path}/$name');
     good:
       - |
         import 'package:file/file.dart';
-        import 'package:file/local.dart';
-        import 'package:meta/meta.dart';
+        import 'package:io_ext/io_ext.dart';
 
-        // Accepts an injectable `FileSystem` from `package:file` so tests can pass `MemoryFileSystem`.
-        File openFile(
-          String path, {
-          @visibleForTesting FileSystem fs = const LocalFileSystem(),
-        }) => fs.file(path);
+        // Uses `fs` from `package:io_ext` so tests can override it with `withFileSystem(MemoryFileSystem(), ...)`.
+        File openTempFile(String name) => fs.file('${fs.systemTempDirectory.path}/$name');
     quick_fix: true
     enable: |
       plugins:

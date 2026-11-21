@@ -23,6 +23,7 @@ plugins:
       sort_functions_alphabetically: true
       sort_named_parameters: true
       sort_widget_functions: true
+      sort_widget_parameters: true
       use_clock: true
       use_file_system: true
       valid_json_serializable: true
@@ -211,6 +212,10 @@ sort_named_parameters:
 
 Includes an automated quick fix (`Sort named parameters alphabetically`).
 
+### `sort_widget_parameters`
+
+Ensures the `child`, `children`, `builder`, and `itemBuilder` named parameters of a `Widget` constructor (and the matching named arguments of widget constructor invocations) come after all other named parameters, sorted alphabetically among themselves. When enabled, this rule takes priority over `sort_named_parameters` for these parameters. Includes an automated quick fix (`Move widget child and builder parameters to the end`).
+
 ### `sort_widget_functions`
 
 Ensures functions within a `Widget` or `State` subclass are sorted in lifecycle and build order:
@@ -235,14 +240,12 @@ Includes an automated quick fix (`Replace with clock.now`) that replaces `DateTi
 
 ### `use_file_system`
 
-Detects direct usages of `dart:io` `File`, `Directory`, `FileSystemEntity`, and `Link` in files inside the `lib/` folder (ignoring files in `test/` and other non-`lib/` directories) and requires using `FileSystem` from `package:file/file.dart` so file system operations can be mocked in tests.
+Detects direct usages of `dart:io` `File`, `Directory`, `FileSystemEntity`, and `Link` (including `Directory.current` and `Directory.systemTemp`) in files inside the `lib/` folder (ignoring files in `test/` and other non-`lib/` directories) and requires using `fs` from `package:io_ext/io_ext.dart` (a `FileSystem` from `package:file/file.dart`) so file system operations can be overridden with `withFileSystem` in tests.
 
-Includes an automated quick fix (`Use FileSystem from package:file`) that:
+Includes an automated quick fix (`Use fs from package:io_ext`) that:
 
-- When `package:io_ext/...` is imported, uses `fs` to obtain the zone `FileSystem` (`fs.file(...)`, `fs.directory(...)`, etc.).
-- When inside a class without `io_ext`, adds a `@visibleForTesting` `_fs` `FileSystem` parameter/field defaulting to `const LocalFileSystem()` and rewrites `File`/`Directory` calls to use `_fs`.
-- When inside a top-level function without `io_ext`, adds a named `@visibleForTesting FileSystem fs = const LocalFileSystem()` parameter and rewrites `File`/`Directory` calls to use `fs`.
-- Automatically updates `dart:io` and adds `package:file/file.dart`, `package:file/local.dart`, and `package:meta/meta.dart` imports as needed.
+- Rewrites `File(...)`, `Directory(...)`, `Link(...)`, `Directory.current`, `Directory.systemTemp`, and `FileSystemEntity` static methods to use `fs` (`fs.file(...)`, `fs.directory(...)`, `fs.link(...)`, `fs.currentDirectory`, `fs.systemTempDirectory`, etc.).
+- Automatically updates `dart:io` (removing it or hiding `File`, `Directory`, `FileSystemEntity`, and `Link` when other `dart:io` symbols are still used), adds `package:io_ext/io_ext.dart`, and adds `package:file/file.dart` when `File`, `Directory`, `FileSystemEntity`, or `Link` types are still referenced.
 
 ### `valid_json_serializable`
 

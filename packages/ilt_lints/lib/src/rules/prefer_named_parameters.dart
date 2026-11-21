@@ -155,6 +155,17 @@ class const _Visitor(
 }) extends SimpleAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
+    // Function types (typedefs) and anonymous functions are constrained by
+    // their context, so they are not flagged.
+    final parent = node.parent;
+    if (parent is GenericFunctionType || parent is FunctionTypeAlias) {
+      return;
+    }
+    if (parent is FunctionExpression &&
+        parent.parent is! FunctionDeclaration &&
+        parent.parent is! MethodDeclaration) {
+      return;
+    }
     final positionalCount = node.parameters.where((p) => p.isPositional).length;
     if (positionalCount > count) {
       rule.reportAtNode(node, arguments: [count.toString()]);

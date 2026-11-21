@@ -130,6 +130,47 @@ class Sub() extends Base {
 ''');
   }
 
+  Future<void> test_flexTableRowLikeWidget_notReported() async {
+    await assertNoDiagnostics('''
+import 'dart:math';
+
+abstract class Key {
+  const Key();
+}
+
+class ValueKey<T> extends Key {
+  const ValueKey(this.value);
+  final T value;
+}
+
+abstract class StatefulWidget {
+  const StatefulWidget({this.key});
+  final Key? key;
+  Object createState();
+}
+
+class FlexTableRow({required final List<int> columns, Key? key}) {
+  this : key = key ?? Random().nextDouble().toString();
+
+  final Object key;
+}
+
+class Controller {}
+
+class _FlexTableRow({
+  required final Controller controller,
+  required final FlexTableRow data,
+  required final int index,
+  required final bool selected,
+}) extends StatefulWidget {
+  this : super(key: ValueKey(data.key));
+
+  @override
+  Object createState() => Object();
+}
+''');
+  }
+
   Future<void> test_generatedPartOfFile_notReported() async {
     newFile('$testPackageLibPath/main.dart', '''
 part 'test.dart';
@@ -145,6 +186,40 @@ class Point {
 }
 
 class User(final String name) {}
+''');
+  }
+
+  Future<void> test_genericSuperArgumentUsingParameterProperty() async {
+    await assertNoDiagnostics('''
+class ValueKey<T> {
+  const ValueKey(this.value);
+  final T value;
+}
+
+class RowData {
+  const RowData(this.key);
+  final String key;
+}
+
+class Base {
+  const Base({this.key});
+  final ValueKey<String>? key;
+}
+
+class Row({
+  required final RowData data,
+  required final int index,
+}) extends Base {
+  this : super(key: ValueKey(data.key));
+}
+''');
+  }
+
+  Future<void> test_mutableFieldWithoutConstructor_notReported() async {
+    await assertNoDiagnostics('''
+class Foo {
+  var items = <String>[];
+}
 ''');
   }
 
@@ -220,6 +295,26 @@ class Point {
     await assertDiagnostics(initial, [lint(6, 5)]);
     final fixed = await _applyFix(initial);
     expect(fixed, expected);
+  }
+
+  Future<void> test_superArgumentUsingParameterProperty_notReported() async {
+    await assertNoDiagnostics('''
+class Key {
+  const Key(this.value);
+  final String value;
+}
+
+class Base {
+  const Base({this.key});
+  final Key? key;
+}
+
+class Row({
+  required final MapEntry<String, String> data,
+}) extends Base {
+  this : super(key: Key(data.key));
+}
+''');
   }
 
   Future<String> _applyFix(String content) async {

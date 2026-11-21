@@ -10,6 +10,7 @@ import 'src/fixes/sort_functions_alphabetically_fix.dart';
 import 'src/fixes/sort_functions_by_scope_fix.dart';
 import 'src/fixes/sort_named_parameters_fix.dart';
 import 'src/fixes/sort_widget_functions_fix.dart';
+import 'src/fixes/sort_widget_parameters_fix.dart';
 import 'src/fixes/use_clock_fix.dart';
 import 'src/fixes/use_file_system_fix.dart';
 import 'src/fixes/valid_json_serializable_fix.dart';
@@ -23,6 +24,7 @@ import 'src/rules/sort_functions_alphabetically.dart';
 import 'src/rules/sort_functions_by_scope.dart';
 import 'src/rules/sort_named_parameters.dart';
 import 'src/rules/sort_widget_functions.dart';
+import 'src/rules/sort_widget_parameters.dart';
 import 'src/rules/use_clock.dart';
 import 'src/rules/use_file_system.dart';
 import 'src/rules/valid_json_serializable.dart';
@@ -76,6 +78,11 @@ class IltLintsPlugin() extends Plugin {
     registry.registerFixForRule(
       SortWidgetFunctions.code,
       SortWidgetFunctionsFix.new,
+    );
+    registry.registerLintRule(SortWidgetParameters());
+    registry.registerFixForRule(
+      SortWidgetParameters.code,
+      SortWidgetParametersFix.new,
     );
     registry.registerLintRule(UseClock());
     registry.registerFixForRule(UseClock.code, UseClockFix.new);

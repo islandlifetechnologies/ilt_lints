@@ -111,6 +111,13 @@ class PreferPrimaryConstructors() extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
+    // Primary constructors require language version 3.13.0 or higher.
+    final version = context.libraryElement?.languageVersion.effective;
+    if (version == null ||
+        version.major < 3 ||
+        (version.major == 3 && version.minor < 13)) {
+      return;
+    }
     final visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
