@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/"/>
+    <meta charset="utf-8"/>
+    <style>
+      :root {
+        --bg-canvas: #ffffff;
+        --bg-surface: #f8fafc;
+        --bg-elevated: #f1f5f9;
+        --bg-header: #121826;
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --brand-blue: #0175c2;
+        --brand-link: #1967d2;
+        --brand-teal: #00b4ab;
+      }
+      body {
+        background-color: var(--bg-canvas);
+        color: var(--text-primary);
+        font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+      }
+    </style>
+    <link href="../../favicon.ico" rel="icon" type="image/x-icon"/>
+    <link sizes="16x16" href="../../favicon-16x16.png" rel="icon" type="image/png"/>
+    <link sizes="32x32" href="../../favicon-32x32.png" rel="icon" type="image/png"/>
+    <link sizes="48x48" href="../../favicon-48x48.png" rel="icon" type="image/png"/>
+    <link sizes="180x180" href="../../apple-touch-icon.png" rel="apple-touch-icon"/>
+    <link sizes="192x192" href="../../favicon-192x192.png" rel="icon" type="image/png"/>
+    <link sizes="512x512" href="../../favicon-512x512.png" rel="icon" type="image/png"/>
+    <link href="../../styles.css" rel="stylesheet"/>
+    <script src="../../main.client.dart.js" defer></script>
+    <!--$-->
+    <title>prefer_const_constructors | Linter rules | ILT Lints</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="prefer_const_constructors: Mark class constructors as `const` whenever the class can be constant without other changes."/>
+    <!--/-->
+  </head>
+  <body>
+    <div class="site-wrapper">
+      <header class="site-header">
+        <div class="site-header-inner">
+          <div class="header-left">
+            <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-controls="site-sidebar" aria-expanded="false" aria-label="Toggle navigation sidebar" type="button">☰</button>
+            <a class="site-brand" href="../../index.html">
+              <svg class="brand-logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true" focusable="false"><path fill="#00D2B8" d="M6.4 6.4L16 1.6l12.8 12.8v11.2H17.6L6.4 14.4z"/><path fill="#0081C6" d="M6.4 6.4L17.6 17.6h11.2L16 4.8z"/><path fill="#00559E" d="M6.4 14.4v11.2l5.6 4.8h12.8l-7.2-7.2z"/></svg>
+              <span class="brand-title">ILT Lints</span>
+            </a>
+          </div>
+          <nav class="header-right">
+            <a class="header-nav-link" href="../../index.html">Linter rules</a>
+            <a class="header-nav-link" href="../../index.html#all-linter-rules">All rules (14)</a>
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark or light theme" title="Toggle theme" type="button">
+              <svg class="theme-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            </button>
+          </nav>
+        </div>
+      </header>
+      <div class="site-body">
+        <aside id="site-sidebar" class="site-sidebar" aria-label="Section navigation">
+          <div class="sidebar-inner">
+            <div class="sidebar-section-title">Tools</div>
+            <ul class="sidebar-nav-list">
+              <li><a class="sidebar-link" href="../../index.html">Linter rules</a></li>
+              <li><a class="sidebar-link" href="../../index.html#all-linter-rules">All linter rules</a></li>
+            </ul>
+            <div class="sidebar-section-title">Individual rules (14)</div>
+            <ul class="sidebar-nav-list sidebar-rules-list">
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/avoid_large_ccn.html"><code>avoid_large_ccn</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/export_library.html"><code>export_library</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link active" href="../../linter-rules/prefer_const_constructors.html"><code>prefer_const_constructors</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/prefer_named_parameters.html"><code>prefer_named_parameters</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/prefer_primary_constructors.html"><code>prefer_primary_constructors</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_fields.html"><code>sort_fields</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_functions_alphabetically.html"><code>sort_functions_alphabetically</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_functions_by_scope.html"><code>sort_functions_by_scope</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_named_parameters.html"><code>sort_named_parameters</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_widget_functions.html"><code>sort_widget_functions</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_widget_parameters.html"><code>sort_widget_parameters</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/use_clock.html"><code>use_clock</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/use_file_system.html"><code>use_file_system</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/valid_json_serializable.html"><code>valid_json_serializable</code></a>
+              </li>
+            </ul>
+          </div>
+        </aside>
+        <main id="main-content" class="site-main">
+          <article class="doc-article">
+            <nav class="breadcrumbs-nav" aria-label="Breadcrumbs">
+              <ol class="breadcrumb-list">
+                <li class="breadcrumb-item">Tools</li>
+                <li class="breadcrumb-item"><a href="../../index.html">Linter rules</a></li>
+                <li class="breadcrumb-item active">prefer_const_constructors</li>
+              </ol>
+            </nav>
+            <div class="rule-detail-content">
+              <header class="hero-header rule-hero-header">
+                <div class="rule-title-row">
+                  <h1 class="page-title rule-page-title"><code class="rule-heading-code">prefer_const_constructors</code></h1>
+                  <button class="icon-copy-btn large" aria-label="Copy rule name prefer_const_constructors" data-copy="prefer_const_constructors" title="Copy prefer_const_constructors" type="button">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
+                <div class="rule-meta-bar">
+                  <span class="meta-pill status-stable"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Stable</span>
+                  <span class="meta-pill status-fix" title="Has an automated quick fix via dart fix or CLI"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                  <a class="meta-pill badge-tag" href="../../index.html?tag=performance#all-linter-rules" title="Filter rules by tag: performance">#performance</a>
+                  <a class="meta-pill badge-tag" href="../../index.html?tag=style#all-linter-rules" title="Filter rules by tag: style">#style</a>
+                </div>
+                <p class="page-lead">
+                  Mark class constructors as <code class="inline-code">const</code> whenever the class can be constant without other changes.
+                </p>
+              </header>
+              <section class="doc-section">
+                <h2 id="details">Details</h2>
+                <p class="do-guideline-paragraph">
+                  <strong class="do-keyword">DO </strong>mark class constructors as <code class="inline-code">const</code> whenever the class can be constant without other changes.
+                </p>
+                <div class="rule-description-paragraph markdown-content">
+                  <p class="markdown-paragraph">
+                    Detects classes whose constructor (primary constructor or generative constructor) can be marked <code class="inline-code">const</code>
+                     without any other changes and flags them if not already marked <code class="inline-code">const</code>.
+                  </p>
+                </div>
+              </section>
+              <section class="doc-section">
+                <h2 id="examples">Examples</h2>
+                <div class="code-card bad-card">
+                  <div class="code-block-header bad-header">
+                    <span class="example-label bad">BAD:</span>
+                    <button class="copy-code-btn" aria-label="Copy BAD Dart example" type="button">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                       Copy
+                    </button>
+                  </div>
+                  <pre class="code-block bad-code"><code class="language-dart">// Primary constructor has only final fields and can be marked `const`.
+class User(final String name) {}</code></pre>
+                </div>
+                <div class="code-card bad-card">
+                  <div class="code-block-header bad-header">
+                    <span class="example-label bad">BAD:</span>
+                    <button class="copy-code-btn" aria-label="Copy BAD Dart example" type="button">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                       Copy
+                    </button>
+                  </div>
+                  <pre class="code-block bad-code"><code class="language-dart">class Point {
+  // Generative constructor only initializes final fields and can be `const`.
+  Point(this.x, this.y);
+
+  final int x;
+  final int y;
+}</code></pre>
+                </div>
+                <div class="code-card good-card">
+                  <div class="code-block-header good-header">
+                    <span class="example-label good">GOOD:</span>
+                    <button class="copy-code-btn" aria-label="Copy GOOD Dart example" type="button">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                       Copy
+                    </button>
+                  </div>
+                  <pre class="code-block good-code"><code class="language-dart">// Primary constructor is marked `const`.
+class const User(final String name) {}</code></pre>
+                </div>
+                <div class="code-card good-card">
+                  <div class="code-block-header good-header">
+                    <span class="example-label good">GOOD:</span>
+                    <button class="copy-code-btn" aria-label="Copy GOOD Dart example" type="button">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                       Copy
+                    </button>
+                  </div>
+                  <pre class="code-block good-code"><code class="language-dart">class Point {
+  // Generative constructor is marked `const`.
+  const Point(this.x, this.y);
+
+  final int x;
+  final int y;
+}</code></pre>
+                </div>
+              </section>
+              <section class="doc-section">
+                <h2 id="enable">How to enable</h2>
+                <p>
+                  To enable the <code class="inline-code">prefer_const_constructors</code> rule, add it to your <code class="inline-code">analysis_options.yaml</code>
+                   file:
+                </p>
+                <div class="code-card">
+                  <div class="code-block-header yaml-header">
+                    <span class="code-block-title">analysis_options.yaml</span>
+                    <button class="copy-code-btn" aria-label="Copy analysis_options.yaml configuration" type="button">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                       Copy
+                    </button>
+                  </div>
+                  <pre class="code-block yaml-code"><code class="language-yaml">plugins:
+  ilt_lints:
+    version: ^2.0.0
+    diagnostics:
+      prefer_const_constructors: true</code></pre>
+                </div>
+              </section>
+              <nav class="page-pagination" aria-label="Rule pagination">
+                <a class="page-nav-card prev" href="../../linter-rules/export_library.html"><span class="page-nav-label">← Previous rule</span><code class="page-nav-rule">export_library</code></a>
+                <a class="page-nav-card next" href="../../linter-rules/prefer_named_parameters.html">
+                  <span class="page-nav-label">Next rule →</span>
+                  <code class="page-nav-rule">prefer_named_parameters</code>
+                </a>
+              </nav>
+            </div>
+          </article>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

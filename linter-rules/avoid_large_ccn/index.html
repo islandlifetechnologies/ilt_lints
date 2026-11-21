@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/"/>
+    <meta charset="utf-8"/>
+    <style>
+      :root {
+        --bg-canvas: #ffffff;
+        --bg-surface: #f8fafc;
+        --bg-elevated: #f1f5f9;
+        --bg-header: #121826;
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --brand-blue: #0175c2;
+        --brand-link: #1967d2;
+        --brand-teal: #00b4ab;
+      }
+      body {
+        background-color: var(--bg-canvas);
+        color: var(--text-primary);
+        font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+      }
+    </style>
+    <link href="../../favicon.ico" rel="icon" type="image/x-icon"/>
+    <link sizes="16x16" href="../../favicon-16x16.png" rel="icon" type="image/png"/>
+    <link sizes="32x32" href="../../favicon-32x32.png" rel="icon" type="image/png"/>
+    <link sizes="48x48" href="../../favicon-48x48.png" rel="icon" type="image/png"/>
+    <link sizes="180x180" href="../../apple-touch-icon.png" rel="apple-touch-icon"/>
+    <link sizes="192x192" href="../../favicon-192x192.png" rel="icon" type="image/png"/>
+    <link sizes="512x512" href="../../favicon-512x512.png" rel="icon" type="image/png"/>
+    <link href="../../styles.css" rel="stylesheet"/>
+    <script src="../../main.client.dart.js" defer></script>
+    <!--$-->
+    <title>avoid_large_ccn | Linter rules | ILT Lints</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="avoid_large_ccn: Avoid deeply nested control flow and excessive branching in a single function; extract smaller, single-purpose helper functions or use early returns and polymorphism to keep [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) low."/>
+    <!--/-->
+  </head>
+  <body>
+    <div class="site-wrapper">
+      <header class="site-header">
+        <div class="site-header-inner">
+          <div class="header-left">
+            <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-controls="site-sidebar" aria-expanded="false" aria-label="Toggle navigation sidebar" type="button">☰</button>
+            <a class="site-brand" href="../../index.html">
+              <svg class="brand-logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true" focusable="false"><path fill="#00D2B8" d="M6.4 6.4L16 1.6l12.8 12.8v11.2H17.6L6.4 14.4z"/><path fill="#0081C6" d="M6.4 6.4L17.6 17.6h11.2L16 4.8z"/><path fill="#00559E" d="M6.4 14.4v11.2l5.6 4.8h12.8l-7.2-7.2z"/></svg>
+              <span class="brand-title">ILT Lints</span>
+            </a>
+          </div>
+          <nav class="header-right">
+            <a class="header-nav-link" href="../../index.html">Linter rules</a>
+            <a class="header-nav-link" href="../../index.html#all-linter-rules">All rules (14)</a>
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark or light theme" title="Toggle theme" type="button">
+              <svg class="theme-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            </button>
+          </nav>
+        </div>
+      </header>
+      <div class="site-body">
+        <aside id="site-sidebar" class="site-sidebar" aria-label="Section navigation">
+          <div class="sidebar-inner">
+            <div class="sidebar-section-title">Tools</div>
+            <ul class="sidebar-nav-list">
+              <li><a class="sidebar-link" href="../../index.html">Linter rules</a></li>
+              <li><a class="sidebar-link" href="../../index.html#all-linter-rules">All linter rules</a></li>
+            </ul>
+            <div class="sidebar-section-title">Individual rules (14)</div>
+            <ul class="sidebar-nav-list sidebar-rules-list">
+              <li>
+                <a class="sidebar-link sidebar-rule-link active" href="../../linter-rules/avoid_large_ccn.html"><code>avoid_large_ccn</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/export_library.html"><code>export_library</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/prefer_const_constructors.html"><code>prefer_const_constructors</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/prefer_named_parameters.html"><code>prefer_named_parameters</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/prefer_primary_constructors.html"><code>prefer_primary_constructors</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_fields.html"><code>sort_fields</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_functions_alphabetically.html"><code>sort_functions_alphabetically</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_functions_by_scope.html"><code>sort_functions_by_scope</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_named_parameters.html"><code>sort_named_parameters</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_widget_functions.html"><code>sort_widget_functions</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/sort_widget_parameters.html"><code>sort_widget_parameters</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/use_clock.html"><code>use_clock</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/use_file_system.html"><code>use_file_system</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../../linter-rules/valid_json_serializable.html"><code>valid_json_serializable</code></a>
+              </li>
+            </ul>
+          </div>
+        </aside>
+        <main id="main-content" class="site-main">
+          <article class="doc-article">
+            <nav class="breadcrumbs-nav" aria-label="Breadcrumbs">
+              <ol class="breadcrumb-list">
+                <li class="breadcrumb-item">Tools</li>
+                <li class="breadcrumb-item"><a href="../../index.html">Linter rules</a></li>
+                <li class="breadcrumb-item active">avoid_large_ccn</li>
+              </ol>
+            </nav>
+            <div class="rule-detail-content">
+              <header class="hero-header rule-hero-header">
+                <div class="rule-title-row">
+                  <h1 class="page-title rule-page-title"><code class="rule-heading-code">avoid_large_ccn</code></h1>
+                  <button class="icon-copy-btn large" aria-label="Copy rule name avoid_large_ccn" data-copy="avoid_large_ccn" title="Copy avoid_large_ccn" type="button">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </div>
+                <div class="rule-meta-bar">
+                  <span class="meta-pill status-stable"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Stable</span>
+                  <span class="meta-pill status-muted">No quick fix</span>
+                  <a class="meta-pill badge-tag" href="../../index.html?tag=experimental#all-linter-rules" title="Filter rules by tag: experimental">#experimental</a>
+                  <a class="meta-pill badge-tag" href="../../index.html?tag=quality#all-linter-rules" title="Filter rules by tag: quality">#quality</a>
+                </div>
+                <p class="page-lead">
+                  Avoid deeply nested control flow and excessive branching in a single function; extract smaller, single-purpose helper functions or use early returns and polymorphism to keep 
+                  <a class="markdown-link" href="https://en.wikipedia.org/wiki/Cyclomatic_complexity" rel="noopener noreferrer" target="_blank">cyclomatic complexity</a>
+                   low.
+                </p>
+              </header>
+              <section class="doc-section">
+                <h2 id="details">Details</h2>
+                <p class="avoid-guideline-paragraph">
+                  <strong class="avoid-keyword">AVOID </strong>deeply nested control flow and excessive branching in a single function; extract smaller, single-purpose helper functions or use early returns and polymorphism to keep 
+                  <a class="markdown-link" href="https://en.wikipedia.org/wiki/Cyclomatic_complexity" rel="noopener noreferrer" target="_blank">cyclomatic complexity</a>
+                   low.
+                </p>
+                <div class="rule-description-paragraph markdown-content">
+                  <p class="markdown-paragraph">
+                    Calculates the <a class="markdown-link" href="https://en.wikipedia.org/wiki/Cyclomatic_complexity" rel="noopener noreferrer" target="_blank">cyclomatic complexity</a>
+                     number (CCN) for every function, method, and constructor and triggers when the complexity exceeds the configured 
+                    <code class="inline-code">ccn</code> threshold (defaults to <code class="inline-code">20</code>). Each conditional branch, loop, 
+                    <code class="inline-code">case</code>, <code class="inline-code">catch</code>, ternary operator (<code class="inline-code">?:</code>), null-coalescing operator (<code class="inline-code">??</code>, 
+                    <code class="inline-code">??=</code>), and logical operator (<code class="inline-code">&amp;&amp;</code>, 
+                    <code class="inline-code">||</code>) increases the function's cyclomatic complexity.
+                  </p>
+                </div>
+              </section>
+              <section class="doc-section">
+                <h2 id="examples">Examples</h2>
+                <div class="code-card bad-card">
+                  <div class="code-block-header bad-header">
+                    <span class="example-label bad">BAD:</span>
+                    <button class="copy-code-btn" aria-label="Copy BAD Dart example" type="button">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                       Copy
+                    </button>
+                  </div>
+                  <pre class="code-block bad-code"><code class="language-dart">// High cyclomatic complexity caused by many chained branches in a single function.
+String classifyScore(int score, {required bool bonus, required bool penalty}) {
+  if (score &gt; 90 &amp;&amp; bonus) {
+    return 'S';
+  } else if (score &gt; 80 || (score &gt; 75 &amp;&amp; bonus)) {
+    return penalty ? 'B+' : 'A';
+  } else if (score &gt; 70 &amp;&amp; !penalty) {
+    return 'B';
+  } else if (score &gt; 60 || bonus) {
+    return penalty ? 'C-' : 'C';
+  }
+  return 'F';
+}</code></pre>
+                </div>
+                <div class="code-card good-card">
+                  <div class="code-block-header good-header">
+                    <span class="example-label good">GOOD:</span>
+                    <button class="copy-code-btn" aria-label="Copy GOOD Dart example" type="button">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                       Copy
+                    </button>
+                  </div>
+                  <pre class="code-block good-code"><code class="language-dart">// Complexity is reduced by extracting focused helper functions and simplifying branches.
+String classifyScore(int score, {required bool bonus, required bool penalty}) {
+  final adjusted = score + (bonus ? 5 : 0) - (penalty ? 5 : 0);
+  return _gradeForAdjustedScore(adjusted);
+}
+
+String _gradeForAdjustedScore(int score) =&gt; switch (score) {
+  &gt; 90 =&gt; 'S',
+  &gt; 80 =&gt; 'A',
+  &gt; 70 =&gt; 'B',
+  &gt; 60 =&gt; 'C',
+  _ =&gt; 'F',
+};</code></pre>
+                </div>
+              </section>
+              <section class="doc-section">
+                <h2 id="enable">How to enable</h2>
+                <p>
+                  To enable the <code class="inline-code">avoid_large_ccn</code> rule, add it to your <code class="inline-code">analysis_options.yaml</code>
+                   file:
+                </p>
+                <div class="code-card">
+                  <div class="code-block-header yaml-header">
+                    <span class="code-block-title">analysis_options.yaml</span>
+                    <button class="copy-code-btn" aria-label="Copy analysis_options.yaml configuration" type="button">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                       Copy
+                    </button>
+                  </div>
+                  <pre class="code-block yaml-code"><code class="language-yaml">plugins:
+  ilt_lints:
+    version: ^2.0.0
+    diagnostics:
+      avoid_large_ccn: true
+
+# Optional configuration (shown with default):
+avoid_large_ccn:
+  ccn: 20</code></pre>
+                </div>
+              </section>
+              <nav class="page-pagination" aria-label="Rule pagination">
+                <div class="page-nav-spacer"></div>
+                <a class="page-nav-card next" href="../../linter-rules/export_library.html"><span class="page-nav-label">Next rule →</span><code class="page-nav-rule">export_library</code></a>
+              </nav>
+            </div>
+          </article>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

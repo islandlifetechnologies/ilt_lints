@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/"/>
+    <meta charset="utf-8"/>
+    <style>
+      :root {
+        --bg-canvas: #ffffff;
+        --bg-surface: #f8fafc;
+        --bg-elevated: #f1f5f9;
+        --bg-header: #121826;
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --brand-blue: #0175c2;
+        --brand-link: #1967d2;
+        --brand-teal: #00b4ab;
+      }
+      body {
+        background-color: var(--bg-canvas);
+        color: var(--text-primary);
+        font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+      }
+    </style>
+    <link href="../favicon.ico" rel="icon" type="image/x-icon"/>
+    <link sizes="16x16" href="../favicon-16x16.png" rel="icon" type="image/png"/>
+    <link sizes="32x32" href="../favicon-32x32.png" rel="icon" type="image/png"/>
+    <link sizes="48x48" href="../favicon-48x48.png" rel="icon" type="image/png"/>
+    <link sizes="180x180" href="../apple-touch-icon.png" rel="apple-touch-icon"/>
+    <link sizes="192x192" href="../favicon-192x192.png" rel="icon" type="image/png"/>
+    <link sizes="512x512" href="../favicon-512x512.png" rel="icon" type="image/png"/>
+    <link href="../styles.css" rel="stylesheet"/>
+    <script src="../main.client.dart.js" defer></script>
+    <!--$-->
+    <title>Linter rules | ILT Lints</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Custom lint rules for use in ILT projects. Includes rules for code style, testability, performance, and quality-of-life utility that can turn required boilerplate code into a simple quick fix. With the exception of the export_library lint, the lints are all enabled by default when the ilt_lints package is included in your project's analysis_options.yaml as follows:"/>
+    <!--/-->
+  </head>
+  <body>
+    <div class="site-wrapper">
+      <header class="site-header">
+        <div class="site-header-inner">
+          <div class="header-left">
+            <button id="sidebar-toggle" class="sidebar-toggle-btn" aria-controls="site-sidebar" aria-expanded="false" aria-label="Toggle navigation sidebar" type="button">☰</button>
+            <a class="site-brand" href="../index.html">
+              <svg class="brand-logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true" focusable="false"><path fill="#00D2B8" d="M6.4 6.4L16 1.6l12.8 12.8v11.2H17.6L6.4 14.4z"/><path fill="#0081C6" d="M6.4 6.4L17.6 17.6h11.2L16 4.8z"/><path fill="#00559E" d="M6.4 14.4v11.2l5.6 4.8h12.8l-7.2-7.2z"/></svg>
+              <span class="brand-title">ILT Lints</span>
+            </a>
+          </div>
+          <nav class="header-right">
+            <a class="header-nav-link active" href="../index.html">Linter rules</a>
+            <a class="header-nav-link" href="../index.html#all-linter-rules">All rules (14)</a>
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark or light theme" title="Toggle theme" type="button">
+              <svg class="theme-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            </button>
+          </nav>
+        </div>
+      </header>
+      <div class="site-body">
+        <aside id="site-sidebar" class="site-sidebar" aria-label="Section navigation">
+          <div class="sidebar-inner">
+            <div class="sidebar-section-title">Tools</div>
+            <ul class="sidebar-nav-list">
+              <li><a class="sidebar-link active" href="../index.html">Linter rules</a></li>
+              <li><a class="sidebar-link" href="../index.html#all-linter-rules">All linter rules</a></li>
+            </ul>
+            <div class="sidebar-section-title">Individual rules (14)</div>
+            <ul class="sidebar-nav-list sidebar-rules-list">
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/avoid_large_ccn.html"><code>avoid_large_ccn</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/export_library.html"><code>export_library</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/prefer_const_constructors.html"><code>prefer_const_constructors</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/prefer_named_parameters.html"><code>prefer_named_parameters</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/prefer_primary_constructors.html"><code>prefer_primary_constructors</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/sort_fields.html"><code>sort_fields</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/sort_functions_alphabetically.html"><code>sort_functions_alphabetically</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/sort_functions_by_scope.html"><code>sort_functions_by_scope</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/sort_named_parameters.html"><code>sort_named_parameters</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/sort_widget_functions.html"><code>sort_widget_functions</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/sort_widget_parameters.html"><code>sort_widget_parameters</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/use_clock.html"><code>use_clock</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/use_file_system.html"><code>use_file_system</code></a>
+              </li>
+              <li>
+                <a class="sidebar-link sidebar-rule-link" href="../linter-rules/valid_json_serializable.html"><code>valid_json_serializable</code></a>
+              </li>
+            </ul>
+          </div>
+        </aside>
+        <main id="main-content" class="site-main">
+          <article class="doc-article">
+            <nav class="breadcrumbs-nav" aria-label="Breadcrumbs">
+              <ol class="breadcrumb-list"><li class="breadcrumb-item">Tools</li><li class="breadcrumb-item active">Linter rules</li></ol>
+            </nav>
+            <div class="index-page-content">
+              <header class="hero-header">
+                <h1 class="page-title">Linter rules</h1>
+                <div class="page-lead markdown-content">
+                  <p class="markdown-paragraph">
+                    Custom lint rules for use in ILT projects.  Includes rules for code style, testability, performance, and quality-of-life utility that can turn required boilerplate code into a simple quick fix.
+                  </p>
+                  <p class="markdown-paragraph">
+                    With the exception of the <code class="inline-code">export_library</code> lint, the lints are all enabled by default when the 
+                    <code class="inline-code">ilt_lints</code> package is included in your project's <code class="inline-code">analysis_options.yaml</code>
+                     as follows:
+                  </p>
+                  <div class="code-card markdown-code-card">
+                    <div class="code-block-header yaml-header">
+                      <span class="code-block-title">YAML</span>
+                      <button class="copy-code-btn" aria-label="Copy YAML code" type="button">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                         Copy
+                      </button>
+                    </div>
+                    <pre class="code-block yaml-code"><code class="language-yaml">include: package:ilt_lints/lints.yaml</code></pre>
+                  </div>
+                </div>
+                <div class="rule-meta-bar">
+                  <span class="meta-pill status-stable">14 Total Rules</span>
+                  <span class="meta-pill status-fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> 13 with Quick Fix</span>
+                </div>
+              </header>
+              <section class="doc-section">
+                <h2 id="overview">Overview</h2>
+                <p>
+                  Each linter rule below documents what the rule checks, why it matters, <code class="inline-code">BAD</code>
+                   and <code class="inline-code">GOOD</code> Dart code examples, and how to enable or configure the rule in 
+                  <code class="inline-code">analysis_options.yaml</code>.
+                </p>
+                <div class="callout-box info-callout">
+                  <strong>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                     Quick fixes: 
+                  </strong>
+                  Rules marked with the quick fix badge include an automated fix that can be applied directly in your IDE or via the CLI.
+                </div>
+              </section>
+              <section class="doc-section">
+                <h2 id="enabling-rules">Enabling rules</h2>
+                <p>
+                  To enable custom lint rules in your project, configure the plugin diagnostics in your <code class="inline-code">analysis_options.yaml</code>
+                   file:
+                </p>
+                <div class="code-card">
+                  <div class="code-block-header yaml-header">
+                    <span class="code-block-title">analysis_options.yaml</span>
+                    <button class="copy-code-btn" aria-label="Copy YAML configuration" type="button">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                       Copy
+                    </button>
+                  </div>
+                  <pre class="code-block yaml-code"><code class="language-yaml">plugins:
+  ilt_lints:
+    version: ^2.0.0
+    diagnostics:
+      avoid_large_ccn: true
+      export_library: true
+      prefer_const_constructors: true
+      prefer_named_parameters: true
+      prefer_primary_constructors: true
+      sort_fields: true
+      sort_functions_alphabetically: true
+      sort_functions_by_scope: true
+      sort_named_parameters: true
+      sort_widget_functions: true
+      sort_widget_parameters: true
+      use_clock: true
+      use_file_system: true
+      valid_json_serializable: true</code></pre>
+                </div>
+              </section>
+              <section class="doc-section">
+                <h2 id="all-linter-rules">All linter rules</h2>
+                <div class="rules-toolbar">
+                  <div class="search-box-wrapper">
+                    <input id="lint-search-input" class="search-input" aria-label="Filter linter rules by name or description" autocomplete="off" placeholder="Filter rules by name, tag, or keyword..." type="search"/>
+                  </div>
+                  <div class="filter-chips">
+                    <button class="filter-chip active" data-filter="all" type="button">All (14)</button>
+                    <button class="filter-chip" data-filter="quick-fix" type="button">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                       Fix available (13)
+                    </button>
+                    <button class="filter-chip filter-chip-tag" data-filter="tag:experimental" data-tag="experimental" type="button">#experimental (2)</button>
+                    <button class="filter-chip filter-chip-tag" data-filter="tag:performance" data-tag="performance" type="button">#performance (1)</button>
+                    <button class="filter-chip filter-chip-tag" data-filter="tag:quality" data-tag="quality" type="button">#quality (1)</button>
+                    <button class="filter-chip filter-chip-tag" data-filter="tag:style" data-tag="style" type="button">#style (9)</button>
+                    <button class="filter-chip filter-chip-tag" data-filter="tag:testability" data-tag="testability" type="button">#testability (2)</button>
+                    <button class="filter-chip filter-chip-tag" data-filter="tag:utility" data-tag="utility" type="button">#utility (2)</button>
+                  </div>
+                </div>
+                <div id="rules-count-status" class="rules-count-status">Showing 14 of 14 rules</div>
+                <div id="lint-cards-container" class="rule-cards-grid">
+                  <div id="rule-avoid_large_ccn" class="rule-card" data-quick-fix="false" data-rule-name="avoid_large_ccn" data-search-text="avoid_large_ccn avoid deeply nested control flow and excessive branching in a single function; extract smaller, single-purpose helper functions or use early returns and polymorphism to keep [cyclomatic complexity](https://en.wikipedia.org/wiki/cyclomatic_complexity) low.  calculates the cyclomatic complexity number (ccn) for every function, method, and constructor and triggers when the complexity exceeds the configured ccn threshold (defaults to 20). each conditional branch, loop, case, catch, ternary operator (?:), null-coalescing operator (??, ??=), and logical operator (&amp;&amp;, ||) increases the function's cyclomatic complexity. experimental quality" data-tags="experimental,quality">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/avoid_large_ccn.html"><code class="rule-card-name">avoid_large_ccn</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name avoid_large_ccn" data-copy="avoid_large_ccn" title="Copy avoid_large_ccn" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag experimental" data-tag-select="experimental" title="Filter by tag: experimental" type="button">#experimental</button>
+                        <button class="badge badge-tag" aria-label="Filter by tag quality" data-tag-select="quality" title="Filter by tag: quality" type="button">#quality</button>
+                        <a class="rule-details-link" href="../linter-rules/avoid_large_ccn.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-avoid">
+                      <strong class="avoid-prefix">AVOID </strong>deeply nested control flow and excessive branching in a single function; extract smaller, single-purpose helper functions or use early returns and polymorphism to keep 
+                      <a class="markdown-link" href="https://en.wikipedia.org/wiki/Cyclomatic_complexity" rel="noopener noreferrer" target="_blank">cyclomatic complexity</a>
+                       low.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Calculates the <a class="markdown-link" href="https://en.wikipedia.org/wiki/Cyclomatic_complexity" rel="noopener noreferrer" target="_blank">cyclomatic complexity</a>
+                         number (CCN) for every function, method, and constructor and triggers when the complexity exceeds the configured 
+                        <code class="inline-code">ccn</code> threshold (defaults to <code class="inline-code">20</code>). Each conditional branch, loop, 
+                        <code class="inline-code">case</code>, <code class="inline-code">catch</code>, ternary operator (<code class="inline-code">?:</code>), null-coalescing operator (<code class="inline-code">??</code>, 
+                        <code class="inline-code">??=</code>), and logical operator (<code class="inline-code">&amp;&amp;</code>, 
+                        <code class="inline-code">||</code>) increases the function's cyclomatic complexity.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-export_library" class="rule-card" data-quick-fix="true" data-rule-name="export_library" data-search-text="export_library  export all library source files from your package's exporter library file. ensures all files matching any include glob (and not matching any optional exclude glob) for a configured exporter file are exported by that exporter. if a file overlaps include and exclude, exclude wins. experimental utility" data-tags="experimental,utility">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/export_library.html"><code class="rule-card-name">export_library</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name export_library" data-copy="export_library" title="Copy export_library" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag experimental" data-tag-select="experimental" title="Filter by tag: experimental" type="button">#experimental</button>
+                        <button class="badge badge-tag" aria-label="Filter by tag utility" data-tag-select="utility" title="Filter by tag: utility" type="button">#utility</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/export_library.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Export all library source files from your package's exporter library file.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Ensures all files matching any <code class="inline-code">include</code> glob (and not matching any optional 
+                        <code class="inline-code">exclude</code> glob) for a configured <code class="inline-code">exporter</code>
+                         file are exported by that exporter. If a file overlaps <code class="inline-code">include</code> and 
+                        <code class="inline-code">exclude</code>, <code class="inline-code">exclude</code> wins.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-prefer_const_constructors" class="rule-card" data-quick-fix="true" data-rule-name="prefer_const_constructors" data-search-text="prefer_const_constructors  mark class constructors as `const` whenever the class can be constant without other changes. detects classes whose constructor (primary constructor or generative constructor) can be marked const without any other changes and flags them if not already marked const. performance style" data-tags="performance,style">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/prefer_const_constructors.html"><code class="rule-card-name">prefer_const_constructors</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name prefer_const_constructors" data-copy="prefer_const_constructors" title="Copy prefer_const_constructors" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag performance" data-tag-select="performance" title="Filter by tag: performance" type="button">#performance</button>
+                        <button class="badge badge-tag" aria-label="Filter by tag style" data-tag-select="style" title="Filter by tag: style" type="button">#style</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/prefer_const_constructors.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Mark class constructors as <code class="inline-code">const</code> whenever the class can be constant without other changes.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Detects classes whose constructor (primary constructor or generative constructor) can be marked <code class="inline-code">const</code>
+                         without any other changes and flags them if not already marked <code class="inline-code">const</code>.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-prefer_named_parameters" class="rule-card" data-quick-fix="true" data-rule-name="prefer_named_parameters" data-search-text="prefer_named_parameters  use named parameters when a function has more than the configured number of positional parameters. triggers when a function, method, or constructor declares more than count positional parameters (defaults to 2). supports configuring count in analysis_options.yaml. style" data-tags="style">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/prefer_named_parameters.html"><code class="rule-card-name">prefer_named_parameters</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name prefer_named_parameters" data-copy="prefer_named_parameters" title="Copy prefer_named_parameters" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag style" data-tag-select="style" title="Filter by tag: style" type="button">#style</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/prefer_named_parameters.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Use named parameters when a function has more than the configured number of positional parameters.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Triggers when a function, method, or constructor declares more than <code class="inline-code">count</code>
+                         positional parameters (defaults to <code class="inline-code">2</code>). Supports configuring <code class="inline-code">count</code>
+                         in <code class="inline-code">analysis_options.yaml</code>.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-prefer_primary_constructors" class="rule-card" data-quick-fix="true" data-rule-name="prefer_primary_constructors" data-search-text="prefer_primary_constructors  use dart primary constructors for classes instead of declaring constructors in the class body. detects classes that do not use a dart primary constructor (class foo(...) or class const foo(...)) when a primary constructor can be used. style" data-tags="style">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/prefer_primary_constructors.html"><code class="rule-card-name">prefer_primary_constructors</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name prefer_primary_constructors" data-copy="prefer_primary_constructors" title="Copy prefer_primary_constructors" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag style" data-tag-select="style" title="Filter by tag: style" type="button">#style</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/prefer_primary_constructors.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Use Dart primary constructors for classes instead of declaring constructors in the class body.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Detects classes that do not use a Dart primary constructor (<code class="inline-code">class Foo(...)</code>
+                         or <code class="inline-code">class const Foo(...)</code>) when a primary constructor can be used.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-sort_fields" class="rule-card" data-quick-fix="true" data-rule-name="sort_fields" data-search-text="sort_fields  sort fields above methods by scope, finality, and alphabetically within each group. ensures fields within a type body (classes, mixins, enums, extensions, and extension types) appear before all methods, getters, setters, and operators (ignoring constructors), grouped by scope (public static const, private static const, public static, private static, public instance, private instance), with final fields before non-final fields when final_first is enabled, and sorted alphabetically within each group. style" data-tags="style">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/sort_fields.html"><code class="rule-card-name">sort_fields</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name sort_fields" data-copy="sort_fields" title="Copy sort_fields" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag style" data-tag-select="style" title="Filter by tag: style" type="button">#style</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/sort_fields.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Sort fields above methods by scope, finality, and alphabetically within each group.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Ensures fields within a type body (classes, mixins, enums, extensions, and extension types) appear before all methods, getters, setters, and operators (ignoring constructors), grouped by scope (public static const, private static const, public static, private static, public instance, private instance), with 
+                        <code class="inline-code">final</code> fields before non-<code class="inline-code">final</code> fields when 
+                        <code class="inline-code">final_first</code> is enabled, and sorted alphabetically within each group.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-sort_functions_alphabetically" class="rule-card" data-quick-fix="true" data-rule-name="sort_functions_alphabetically" data-search-text="sort_functions_alphabetically  sort functions, getters, and setters alphabetically within each scope. ensures functions, getters, and setters within a type body (classes, mixins, enums, extensions, and extension types) are sorted alphabetically (lexicographically) within each scope. fields, constructors, and operators are ignored. when sort_widget_functions is enabled, functions owned by sort_widget_functions in widget and state classes are deferred to that rule. style" data-tags="style">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/sort_functions_alphabetically.html"><code class="rule-card-name">sort_functions_alphabetically</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name sort_functions_alphabetically" data-copy="sort_functions_alphabetically" title="Copy sort_functions_alphabetically" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag style" data-tag-select="style" title="Filter by tag: style" type="button">#style</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/sort_functions_alphabetically.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Sort functions, getters, and setters alphabetically within each scope.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Ensures functions, getters, and setters within a type body (classes, mixins, enums, extensions, and extension types) are sorted alphabetically (lexicographically) within each scope. Fields, constructors, and operators are ignored. When 
+                        <code class="inline-code">sort_widget_functions</code> is enabled, functions owned by <code class="inline-code">sort_widget_functions</code>
+                         in <code class="inline-code">Widget</code> and <code class="inline-code">State</code> classes are deferred to that rule.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-sort_functions_by_scope" class="rule-card" data-quick-fix="true" data-rule-name="sort_functions_by_scope" data-search-text="sort_functions_by_scope  sort functions, getters, and setters by static/instance and visibility scope. ensures functions, getters, and setters within a type body (classes, mixins, enums, extensions, and extension types) are sorted by scope: public static getters, public static setters, public static functions, private static getters, private static setters, private static functions, public getters, public setters, private getters, private setters, public instance functions, and private instance functions. fields, constructors, and operators are ignored. when sort_widget_functions is enabled, functions owned by sort_widget_functions in widget and state classes are deferred to that rule. style" data-tags="style">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/sort_functions_by_scope.html"><code class="rule-card-name">sort_functions_by_scope</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name sort_functions_by_scope" data-copy="sort_functions_by_scope" title="Copy sort_functions_by_scope" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag style" data-tag-select="style" title="Filter by tag: style" type="button">#style</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/sort_functions_by_scope.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Sort functions, getters, and setters by static/instance and visibility scope.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Ensures functions, getters, and setters within a type body (classes, mixins, enums, extensions, and extension types) are sorted by scope: public static getters, public static setters, public static functions, private static getters, private static setters, private static functions, public getters, public setters, private getters, private setters, public instance functions, and private instance functions. Fields, constructors, and operators are ignored. When 
+                        <code class="inline-code">sort_widget_functions</code> is enabled, functions owned by <code class="inline-code">sort_widget_functions</code>
+                         in <code class="inline-code">Widget</code> and <code class="inline-code">State</code> classes are deferred to that rule.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-sort_named_parameters" class="rule-card" data-quick-fix="true" data-rule-name="sort_named_parameters" data-search-text="sort_named_parameters  sort named parameters in declarations and named arguments at call sites alphabetically. ensures named parameters in function, method, and constructor declarations and named arguments at call sites are sorted alphabetically. leading underscores on private named parameters are ignored when sorting so _foo sorts as foo. supports required_first and ignore options in analysis_options.yaml. style" data-tags="style">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/sort_named_parameters.html"><code class="rule-card-name">sort_named_parameters</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name sort_named_parameters" data-copy="sort_named_parameters" title="Copy sort_named_parameters" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag style" data-tag-select="style" title="Filter by tag: style" type="button">#style</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/sort_named_parameters.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Sort named parameters in declarations and named arguments at call sites alphabetically.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Ensures named parameters in function, method, and constructor declarations and named arguments at call sites are sorted alphabetically. Leading underscores on private named parameters are ignored when sorting so 
+                        <code class="inline-code">_foo</code> sorts as <code class="inline-code">foo</code>. Supports <code class="inline-code">required_first</code>
+                         and <code class="inline-code">ignore</code> options in <code class="inline-code">analysis_options.yaml</code>.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-sort_widget_functions" class="rule-card" data-quick-fix="true" data-rule-name="sort_widget_functions" data-search-text="sort_widget_functions  sort widget lifecycle methods first (`initstate`, `didchangedependencies`, `didupdatewidget`, `deactivate`, `dispose`), followed by other functions, then `build*` and `_build*` helper methods by scope, and `build` last. ensures functions within a widget or state subclass are sorted in widget lifecycle and build order: initstate, didchangedependencies, didupdatewidget, deactivate, dispose, other functions/getters/setters, public build* functions, private _build* functions, and finally build. non-widget and non-state classes pass this rule automatically. style" data-tags="style">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/sort_widget_functions.html"><code class="rule-card-name">sort_widget_functions</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name sort_widget_functions" data-copy="sort_widget_functions" title="Copy sort_widget_functions" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag style" data-tag-select="style" title="Filter by tag: style" type="button">#style</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/sort_widget_functions.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Sort widget lifecycle methods first (<code class="inline-code">initState</code>, <code class="inline-code">didChangeDependencies</code>, 
+                      <code class="inline-code">didUpdateWidget</code>, <code class="inline-code">deactivate</code>, <code class="inline-code">dispose</code>), followed by other functions, then 
+                      <code class="inline-code">build*</code> and <code class="inline-code">_build*</code> helper methods by scope, and 
+                      <code class="inline-code">build</code> last.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Ensures functions within a <code class="inline-code">Widget</code> or <code class="inline-code">State</code>
+                         subclass are sorted in widget lifecycle and build order: <code class="inline-code">initState</code>, 
+                        <code class="inline-code">didChangeDependencies</code>, <code class="inline-code">didUpdateWidget</code>, 
+                        <code class="inline-code">deactivate</code>, <code class="inline-code">dispose</code>, other functions/getters/setters, public 
+                        <code class="inline-code">build*</code> functions, private <code class="inline-code">_build*</code> functions, and finally 
+                        <code class="inline-code">build</code>. Non-widget and non-state classes pass this rule automatically.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-sort_widget_parameters" class="rule-card" data-quick-fix="true" data-rule-name="sort_widget_parameters" data-search-text="sort_widget_parameters  place `builder`, `child`, `children`, and `itembuilder` last, in alphabetical order. ensures the child, children, builder, and itembuilder named parameters of a widget constructor (and the matching named arguments of widget constructor invocations) come after all other named parameters, sorted alphabetically among themselves. takes priority over sort_named_parameters for these parameters. style" data-tags="style">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/sort_widget_parameters.html"><code class="rule-card-name">sort_widget_parameters</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name sort_widget_parameters" data-copy="sort_widget_parameters" title="Copy sort_widget_parameters" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag style" data-tag-select="style" title="Filter by tag: style" type="button">#style</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/sort_widget_parameters.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Place <code class="inline-code">builder</code>, <code class="inline-code">child</code>, <code class="inline-code">children</code>, and 
+                      <code class="inline-code">itemBuilder</code> last, in alphabetical order.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Ensures the <code class="inline-code">child</code>, <code class="inline-code">children</code>, <code class="inline-code">builder</code>, and 
+                        <code class="inline-code">itemBuilder</code> named parameters of a <code class="inline-code">Widget</code>
+                         constructor (and the matching named arguments of widget constructor invocations) come after all other named parameters, sorted alphabetically among themselves. Takes priority over 
+                        <code class="inline-code">sort_named_parameters</code> for these parameters.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-use_clock" class="rule-card" data-quick-fix="true" data-rule-name="use_clock" data-search-text="use_clock  use `clock.now()` from `package:clock/clock.dart` instead of `datetime.now()` in `lib/` files. detects usages of datetime.now() and datetime.now tear-offs in files inside the lib/ folder (ignoring test/ and other non-lib/ directories) and requires using clock.now() / clock.now from package:clock/clock.dart so that time can be mocked in tests. testability" data-tags="testability">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/use_clock.html"><code class="rule-card-name">use_clock</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name use_clock" data-copy="use_clock" title="Copy use_clock" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag testability" data-tag-select="testability" title="Filter by tag: testability" type="button">#testability</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/use_clock.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Use <code class="inline-code">clock.now()</code> from <code class="inline-code">package:clock/clock.dart</code>
+                       instead of <code class="inline-code">DateTime.now()</code> in <code class="inline-code">lib/</code> files.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Detects usages of <code class="inline-code">DateTime.now()</code> and <code class="inline-code">DateTime.now</code>
+                         tear-offs in files inside the <code class="inline-code">lib/</code> folder (ignoring <code class="inline-code">test/</code>
+                         and other non-<code class="inline-code">lib/</code> directories) and requires using <code class="inline-code">clock.now()</code>
+                         / <code class="inline-code">clock.now</code> from <code class="inline-code">package:clock/clock.dart</code>
+                         so that time can be mocked in tests.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-use_file_system" class="rule-card" data-quick-fix="true" data-rule-name="use_file_system" data-search-text="use_file_system  use `fs` from `package:io_ext/io_ext.dart` and `file`, `directory`, `filesystementity`, and `link` from `package:file/file.dart` instead of `dart:io` in `lib/` files. detects direct usages of dart:io file, directory, filesystementity, and link (including directory.current and directory.systemtemp) in files inside the lib/ folder (ignoring test/ and other non-lib/ directories) and requires using fs from package:io_ext/io_ext.dart (a filesystem from package:file/file.dart) so file system operations can be overridden in tests with withfilesystem. testability" data-tags="testability">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/use_file_system.html"><code class="rule-card-name">use_file_system</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name use_file_system" data-copy="use_file_system" title="Copy use_file_system" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag testability" data-tag-select="testability" title="Filter by tag: testability" type="button">#testability</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/use_file_system.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Use <code class="inline-code">fs</code> from <code class="inline-code">package:io_ext/io_ext.dart</code>
+                       and <code class="inline-code">File</code>, <code class="inline-code">Directory</code>, <code class="inline-code">FileSystemEntity</code>, and 
+                      <code class="inline-code">Link</code> from <code class="inline-code">package:file/file.dart</code> instead of 
+                      <code class="inline-code">dart:io</code> in <code class="inline-code">lib/</code> files.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Detects direct usages of <code class="inline-code">dart:io</code> <code class="inline-code">File</code>, 
+                        <code class="inline-code">Directory</code>, <code class="inline-code">FileSystemEntity</code>, and <code class="inline-code">Link</code>
+                         (including <code class="inline-code">Directory.current</code> and <code class="inline-code">Directory.systemTemp</code>) in files inside the 
+                        <code class="inline-code">lib/</code> folder (ignoring <code class="inline-code">test/</code> and other non-<code class="inline-code">lib/</code>
+                         directories) and requires using <code class="inline-code">fs</code> from <code class="inline-code">package:io_ext/io_ext.dart</code>
+                         (a <code class="inline-code">FileSystem</code> from <code class="inline-code">package:file/file.dart</code>) so file system operations can be overridden in tests with 
+                        <code class="inline-code">withFileSystem</code>.
+                      </p>
+                    </div>
+                  </div>
+                  <div id="rule-valid_json_serializable" class="rule-card" data-quick-fix="true" data-rule-name="valid_json_serializable" data-search-text="valid_json_serializable  include the generated `.g.dart` part directive and define `fromjson` and `tojson` methods that call the generated `json_serializable` helpers. ensures classes annotated with @jsonserializable include the generated part '&lt;filename&gt;.g.dart'; directive, define a valid fromjson factory or static method calling _$&lt;classname&gt;fromjson when createfactory is enabled, and define a valid tojson method calling _$&lt;classname&gt;tojson when createtojson is enabled. utility" data-tags="utility">
+                    <div class="rule-card-header">
+                      <div class="rule-card-title-group">
+                        <a class="rule-card-link" href="../linter-rules/valid_json_serializable.html"><code class="rule-card-name">valid_json_serializable</code></a>
+                        <button class="icon-copy-btn" aria-label="Copy rule name valid_json_serializable" data-copy="valid_json_serializable" title="Copy valid_json_serializable" type="button">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      </div>
+                      <div class="rule-card-badges">
+                        <button class="badge badge-tag" aria-label="Filter by tag utility" data-tag-select="utility" title="Filter by tag: utility" type="button">#utility</button>
+                        <span class="badge badge-fix" title="Has an automated quick fix"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Fix available</span>
+                        <a class="rule-details-link" href="../linter-rules/valid_json_serializable.html">View details →</a>
+                      </div>
+                    </div>
+                    <p class="rule-card-do">
+                      <strong class="do-prefix">DO </strong>Include the generated <code class="inline-code">.g.dart</code> part directive and define <code class="inline-code">fromJson</code>
+                       and <code class="inline-code">toJson</code> methods that call the generated <code class="inline-code">json_serializable</code>
+                       helpers.
+                    </p>
+                    <div class="rule-card-description markdown-content">
+                      <p class="markdown-paragraph">
+                        Ensures classes annotated with <code class="inline-code">@JsonSerializable</code> include the generated 
+                        <code class="inline-code">part '&lt;filename&gt;.g.dart';</code> directive, define a valid <code class="inline-code">fromJson</code>
+                         factory or static method calling <code class="inline-code">_$&lt;ClassName&gt;FromJson</code> when <code class="inline-code">createFactory</code>
+                         is enabled, and define a valid <code class="inline-code">toJson</code> method calling <code class="inline-code">_$&lt;ClassName&gt;ToJson</code>
+                         when <code class="inline-code">createToJson</code> is enabled.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div id="empty-search-state" class="empty-search-state" hidden="hidden">No linter rules match your current search filter.</div>
+              </section>
+            </div>
+          </article>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
